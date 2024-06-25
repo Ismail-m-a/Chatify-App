@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Removed unnecessary import
 import '../css/SideNav.css';
 
 function SideNav() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const isAuthenticated = localStorage.getItem('token'); // Check if user is authenticated (you can adjust this based on your actual authentication logic)
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem('token'); // Clear the authentication token
     navigate('/login');
   };
 
@@ -18,12 +19,20 @@ function SideNav() {
   return (
     <div>
       <div className={`sidenav ${isOpen ? 'open' : ''}`}>
-        <button className="closebtn" onClick={toggleMenu}>&times;</button>
+        <button className="closebtn" onClick={toggleMenu}>
+          ×
+        </button>
         <button onClick={() => navigate('/profile')}>Profile</button>
         <button onClick={() => navigate('/chat')}>Chat</button>
-        <button onClick={handleLogout}>Logout</button>
+        {isAuthenticated ? (
+          <button onClick={handleLogout}>Logout</button>
+        ) : (
+          <button onClick={() => navigate('/login')}>Login 🔐</button>
+        )}
       </div>
-      <span className="openbtn" onClick={toggleMenu}>&#9776; Open Menu</span>
+      <span className="openbtn" onClick={toggleMenu}>
+        ☰ Open Menu
+      </span>
     </div>
   );
 }

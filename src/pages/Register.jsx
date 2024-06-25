@@ -45,8 +45,7 @@ function Register() {
       });
       if (response.data) {
         alert('Registration successful!');
-        localStorage.setItem('selectedAvatar', selectedAvatar); // Store the selected avatar
-        navigate('/profile'); // Change to '/profile' if that's your profile page route
+        navigate('/login'); // Navigate to login page after successful registration
       }
     } catch (error) {
       setError(error.response.data.message);

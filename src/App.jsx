@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import OtherUserProfile from './pages/OtherUserProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import SideNav from './components/SideNav';
 
@@ -17,6 +18,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/chat" element={<Chat />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:userId" element={<OtherUserProfile />} />
 
         </Route>
         <Route path="*" element={<Navigate to="/login" />} />

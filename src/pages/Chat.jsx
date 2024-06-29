@@ -16,6 +16,7 @@ function Chat() {
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState({});
   const [conversationId, setConversationId] = useState('');
+  const [lastDisplayedDate, setLastDisplayedDate] = useState(null);
   const navigate = useNavigate();
   const messageRef = useRef(null);
   const inputRef = useRef(null);
@@ -246,15 +247,49 @@ function Chat() {
     navigate('/login');
   };
 
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString();
+  // const formatDate = (timestamp) => {
+  //   const date = new Date(timestamp);
+  //   return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString();
+  // };
+
+  // const formatTime = (timestamp) => {
+  //   const time = new Date(timestamp);
+  //   return isNaN(time.getTime()) ? 'Invalid Time' : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // };
+
+  const formatDateTime = (timestamp) => {
+    const dateTime = new Date(timestamp);
+    if (isNaN(dateTime.getTime())) {
+      return 'Invalid Date';
+    }
+    const options = {
+      hour: 'numeric',
+      minute: 'numeric',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    };
+    return `${dateTime.toLocaleDateString('en-US', options)} `;
   };
 
-  const formatTime = (timestamp) => {
-    const time = new Date(timestamp);
-    return isNaN(time.getTime()) ? 'Invalid Time' : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Updated: Function to determine if date divider should be displayed
+  const shouldDisplayDateDivider = (currentMessage, previousMessage) => {
+    if (!previousMessage) {
+      return true; // Always show divider for the first message
+    }
+
+    const currentDateTime = new Date(currentMessage.createdAt);
+    const previousDateTime = new Date(previousMessage.createdAt);
+
+    // Compare dates (ignoring time for simplicity)
+    const currentDay = currentDateTime.getDate();
+    const previousDay = previousDateTime.getDate();
+
+    // Show divider if dates are different
+    return currentDay !== previousDay;
   };
+ 
+  
 
   return (
     <Container fluid className="py-5 h-100" style={{ backgroundColor: '#eee' }}>
@@ -265,81 +300,76 @@ function Chat() {
             <Card.Header className="d-flex justify-content-between align-items-center p-3" style={{ borderTop: '4px solid #ffa900' }}>
               <h5 className="mb-0">Chat messages</h5>
               <div className="d-flex flex-row align-items-center">
-                <button onClick={handleLogout}>Logout</button>
+                <Button variant='outline-danger' className='logout' onClick={handleLogout}>Logout</Button>
               </div>
             </Card.Header>
             <Card.Body className="scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
-              <div className="chat-window">
-                {messages.map((message, index) => {
-                  const timestamp = message.createdAt;
-                  const date = new Date(timestamp);
-                  const isValidDate = !isNaN(date.getTime());
-                  
-                  const messageUser = users[message.userId] || (message.user && message.user[0]); // Updated to ensure user details are fetched correctly;
-                  const username = messageUser?.username || 'Unknown';
-                  const avatar = message.user?.avatar || 'default-avatar.png';
-                  const isCurrentUser = message.userId === user?.id;
+  <div className="chat-window">
+    {messages.map((message, index) => {
+      const timestamp = message.createdAt;
+      const date = new Date(timestamp);
+      const isValidDate = !isNaN(date.getTime());
+      
+      const messageUser = users[message.userId] || (message.user && message.user[0]); // Updated to ensure user details are fetched correctly;
+      const username = messageUser?.username || 'Unknown';
+      const avatar = message.user?.avatar || 'default-avatar.png';
+      const isCurrentUser = message.userId === user?.id;
+      
+      // Updated: Check if current message's date divider should be displayed
+      const showDateDivider = shouldDisplayDateDivider(message, messages[index - 1]);
 
-                  console.log(`Message ID: ${message.id}, Username: ${username}, Avatar: ${avatar}, IsCurrentUser: ${isCurrentUser}`);
+    
 
-                  const MessageMenu = ({ handleDelete, handleEdit }) => {
-                    const [isOpen, setIsOpen] = useState(false); // State to track menu visibility
+      const MessageMenu = ({ handleDelete, handleEdit }) => {
+        const [isOpen, setIsOpen] = useState(false); // State to track menu visibility
 
-                    const toggleMenu = () => setIsOpen(!isOpen);
+        const toggleMenu = () => setIsOpen(!isOpen);
 
-                    return (
-                      <div className="message-menu">
-                        <button className='menu-btn' onClick={toggleMenu}>
-                          <i className="fas fa-ellipsis-v"></i> {/* Font Awesome icon for 3 dots */}
-                        </button>
-                        {isOpen && (
-                          <ul className="message-menu-options">
-                            <li onClick={() => { handleDelete(); setIsOpen(false); }}>Delete</li>
-                            <li onClick={() => { handleEdit(); setIsOpen(false); }}>Edit</li>
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  };
+        return (
+          <div className="message-menu">
+            <button className='menu-btn' onClick={toggleMenu}>
+              <i className="fas fa-ellipsis-v"></i> {/* Font Awesome icon for 3 dots */}
+            </button>
+            {isOpen && (
+              <ul className="message-menu-options">
+                <li onClick={() => { handleDelete(); setIsOpen(false); }}>Delete</li>
+                <li onClick={() => { handleEdit(); setIsOpen(false); }}>Edit</li>
+              </ul>
+            )}
+          </div>
+        );
+      };
 
-                  return (
-                    <React.Fragment key={message.id}>
-                      {index > 0 && formatDate(messages[index - 1].createdAt) !== formatDate(message.createdAt) && (
-                        <div className="divider d-flex align-items-center mb-4">
-                          <p className="text-center mx-3 mb-0" style={{ color: '#a2aab7' }}>
-                            {isValidDate ? formatDate(timestamp) : 'Invalid Date'}
-                          </p>
-                        </div>
-                      )}
-                      {/* <div className="d-flex justify-content-between">
-                        <p className="small mb-1"><strong>{username}</strong></p>
-                        
-                      </div> */}
-                      <div className={`d-flex flex-row justify-content-${isCurrentUser ? 'end' : 'start'} mb-4 pt-1`}>
-                        {!isCurrentUser && (
-                          
-                            <Image src={avatar} alt={`${username} avatar`} style={{ width: '45px', height: '45px' }} roundedCircle onClick={() => navigate(`/user/${message.userId}`)} className='chat-avatar' />
-                  
-                        )}
-                        <div>
-                          <p className={`small p-2 ${isCurrentUser ? 'me-3 text-white bg-primary' : 'ms-3'} mb-3 rounded-3 `} style={{ backgroundColor: !isCurrentUser ? '#f5f6f7' : ''  }}>
-                            {message.text}
-                          </p>
-                          <p className="small mb-1 text-muted">{isValidDate ? formatTime(timestamp) : 'Invalid Date'}</p>
-                        </div>
-                        {isCurrentUser && (
-                          <>
-                            <MessageMenu handleDelete={() => handleDeleteMessage(message.id)} handleEdit={() => handleEditMessage(message.id)} /> {/* Pass message ID to functions */}
-                            <Image src={user?.avatar || 'default-avatar.png'} alt={`${username} avatar`} roundedCircle onClick={() => navigate(`/profile`)} className="chat-avatar" />
-                          </>
-                        )}
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
-                <div ref={messageRef} />
-              </div>
-            </Card.Body>
+      return (
+        <React.Fragment key={message.id}>
+          {showDateDivider && (
+            <div className="divider align-items-center mb-4">
+              <p className="small mb-1 text-muted" style={{ display: 'inline-block' }}>{isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}</p>
+            </div>
+          )}
+          <div className={`d-flex flex-row justify-content-${isCurrentUser ? 'end' : 'start'} mb-4 pt-1`}>
+            {!isCurrentUser && (
+              <Image src={avatar} title={username} alt={`${username} avatar`} style={{ width: '45px', height: '45px' }} roundedCircle onClick={() => navigate(`/user/${message.userId}`)} className='chat-avatar' />
+            )}
+            <div>
+              <p className={`small p-2 ${isCurrentUser ? 'me-3 text-white bg-primary' : 'ms-3'} mb-3 rounded-3 `} style={{ backgroundColor: !isCurrentUser ? '#f5f6f7' : '' }} title={isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}>
+                {message.text}
+              </p>
+            </div>
+            {isCurrentUser && (
+              <>
+                <MessageMenu handleDelete={() => handleDeleteMessage(message.id)} handleEdit={() => handleEditMessage(message.id)} />
+                <Image src={user?.avatar || 'default-avatar.png'} title={username} alt={`${username} avatar`} roundedCircle onClick={() => navigate(`/profile`)} className="chat-avatar" />
+              </>
+            )}
+          </div>
+        </React.Fragment>
+      );
+    })}
+    <div ref={messageRef} />
+  </div>
+</Card.Body>
+
             <Card.Footer className="text-muted d-flex justify-content-start align-items-center p-3" id='chat-input'>
               <Form.Control
                 ref={inputRef}

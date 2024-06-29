@@ -59,3 +59,22 @@
     border: 2px solid #007bff;
   }
   
+
+  .profile-container {
+    padding-top: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  
+  .profile-card {
+    width: 100%;
+    max-width: 300px;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .profile-card:hover {
+    transform: scale(1.03);
+  }
+  

@@ -4,14 +4,28 @@
   }
   
   .card {
+    
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  .card-header {
+  /* .card-header {
     background-color: #ffffff;
     border-bottom: none;
+  } */
+
+  .card-header {
+    position: sticky; /* Make the header sticky */
+    top: 0; /* Position it at the top of the card */
+    background-color: #ffffff; /* Maintain white background */
+    border-bottom: none; /* Remove unnecessary bottom border */
+    z-index: 1; /* Ensure header stays above content when scrolling */
+    border-bottom: 1px solid grey;
   }
+  .logout:hover{
+    background-color: red;
+  }
+  
   
   .card-footer {
     background-color: #ffffff;
@@ -34,21 +48,24 @@
     border-color: #ff8c00;
   }
   
-  .scrollbar {
-    overflow-y: auto;
-  }
+
   
   .divider {
     display: flex;
-    align-items: center;
+    text-align: center;
+    justify-content: center;
     margin-bottom: 1rem;
+    color: #a2aab7;
+  }
+  title {
+    border-radius: 4px;
   }
   
-  .divider p {
+  /* .divider p {
     margin: 0;
     padding: 0 190px;
     color: #a2aab7;
-  }
+  } */
   
   .text-muted {
     color: #a2aab7 !important;
@@ -109,10 +126,6 @@
 
 }
 
-.scrollbar {
-  height: calc(100vh - 150px); /* Adjust based on header and footer height */
-  overflow-y: auto;
-}
 
 .chat-window {
   max-height: 100%;
@@ -120,6 +133,12 @@
 
 #chat-input {
   margin-bottom: 0;
+}
+.chat-avatar {
+  display: inline-block;
+}
+.chat-avatar:hover {
+  background-color: #a2aab7;
 }
 
 

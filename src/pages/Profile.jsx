@@ -11,27 +11,23 @@ function Profile() {
   const [editMode, setEditMode] = useState(false);
   const [updatedUsername, setUpdatedUsername] = useState('');
   const [updatedEmail, setUpdatedEmail] = useState('');
+  const [updatedPassword, setUpdatedPassword] = useState('');
   const [generatedAvatars, setGeneratedAvatars] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const loadUserData = () => {
     const storedUser = localStorage.getItem('user');
-    const storedSelectedAvatarIndex = localStorage.getItem('selectedAvatarIndex');
 
     if (storedUser && storedUser !== 'undefined') {
       try {
         const userData = JSON.parse(storedUser) || [];
         if (userData.length > 0 && userData[0] && typeof userData[0] === 'object' && 'id' in userData[0]) {
-          setUser(userData[0]);
-          setUpdatedUsername(userData[0].username);
-          setUpdatedEmail(userData[0].email);
-          const userAvatars = userData[0].avatars || [];
-          if (storedSelectedAvatarIndex && userAvatars.length > 0) {
-            const selectedAvatarIndex = parseInt(storedSelectedAvatarIndex);
-            if (selectedAvatarIndex >= 0 && selectedAvatarIndex < userAvatars.length) {
-              setSelectedAvatar(userAvatars[selectedAvatarIndex]);
-            }
-          }
+          const currentUser = userData[0];
+          setUser(currentUser);
+          setUpdatedUsername(currentUser.username);
+          setUpdatedEmail(currentUser.email);
+          setUpdatedPassword(currentUser.password);
+          setSelectedAvatar(currentUser.avatar);
         } else {
           setError('Invalid user data. Please login again.');
         }
@@ -41,6 +37,10 @@ function Profile() {
     } else {
       setError('No user found. Please login again.');
     }
+  };
+
+  useEffect(() => {
+    loadUserData();
   }, []);
 
   const updateUser = async (userId, updatedData) => {
@@ -63,7 +63,7 @@ function Profile() {
         },
       });
       console.log('Response from server:', response);
-      return response.data; // Ensure to return the data part of the response
+      return response;
     } catch (error) {
       if (error.response && error.response.status === 400) {
         setError('Invalid data. Please check the updated fields and try again.');
@@ -103,35 +103,35 @@ function Profile() {
       const updatedData = {
         username: updatedUsername,
         email: updatedEmail,
-        avatar: selectedAvatar,
+        password: updatedPassword,
+        avatar: selectedAvatar || user.avatar,
       };
 
       if (user && user.id) {
         const response = await updateUser(user.id, updatedData);
         
-        if (response) { // Ensure response is defined
-          const updatedUserData = response;
+        if (response && response.status === 200) {
+          const updatedUserData = {
+            ...user,
+            ...updatedData,
+          };
 
-          if (updatedUserData && updatedUserData.id) { // Check if updatedUserData is defined and has an id property
-            // Update the logged-in user's data in localStorage
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-              const userData = JSON.parse(storedUser);
-              const updatedUsers = userData.map((user) => {
-                if (user.id === updatedUserData.id) {
-                  return updatedUserData;
-                }
-                return user;
-              });
-              localStorage.setItem('user', JSON.stringify(updatedUsers));
-            }
-
-            setUser(updatedUserData);
-            setEditMode(false);
-            setError('');
-          } else {
-            setError('Invalid response from the server.');
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            const updatedUsers = userData.map((u) => u.id === user.id ? updatedUserData : u);
+            localStorage.setItem('user', JSON.stringify(updatedUsers));
           }
+
+          setUser(updatedUserData);
+          setUpdatedUsername(updatedUserData.username);
+          setUpdatedEmail(updatedUserData.email);
+          setUpdatedPassword(updatedUserData.password);
+          setSelectedAvatar(updatedUserData.avatar);
+          setEditMode(false);
+          setError('');
+          
+          loadUserData();
         } else {
           setError('Invalid response from the server.');
         }
@@ -174,7 +174,7 @@ function Profile() {
     <>
       <div className="profile-container">
         <div className="profile-card">
-          <img className="profile-avatar" src={selectedAvatar || user.avatar} alt={user.username} />
+          <img className="profile-avatar" src={user.avatar} alt={user.username} />
           {editMode && <button onClick={generateAvatars}>Generate Avatar</button>}
           {editMode && generatedAvatars.length > 0 && (
             <div className="generated-avatars">
@@ -197,7 +197,7 @@ function Profile() {
               placeholder="Update Username"
             />
           ) : (
-            <p>Namn: {updatedUsername}</p>
+            <p>Namn: {user.username}</p>
           )}
           {editMode ? (
             <input
@@ -207,22 +207,37 @@ function Profile() {
               placeholder="Update Email"
             />
           ) : (
-            <p>E-post: {updatedEmail}</p>
+            <p>E-post: {user.email}</p>
+          )}
+          {editMode? (
+            <input
+              type="password"
+              value={updatedPassword}
+              onChange={(e) => setUpdatedPassword(e.target.value)}
+              placeholder="Update Password"
+            />
+          ) : ( 
+            // <p>Lösenord: {user.password.substring(0, 5)}...</p>
+            // <p>Lösenord: {updatedPassword.replace(/./g, '*')} {/* Masked representation */}</p>
+            // <p>Lösenord: {updatedPassword.slice(0, 6) + '*'.repeat(updatedPassword.length - 6)}</p>
+            <p>Lösenord: {updatedPassword.slice(0, 6).replace(/./g, '*')}</p>
+
+            
           )}
           <p className="profile-id">User ID: {user.id}</p>
           {editMode ? (
-            <button onClick={handleSave}>Save</button>
+            <>
+              <button onClick={handleSave}>Save</button>
+              <button onClick={() => setEditMode(false)}>Cancel</button>
+            </>
           ) : (
             <button onClick={handleUpdate}>Update Profile</button>
           )}
+          <button onClick={() => window.history.back()}>Go Back</button>
         </div>
       </div>
       <div className="delete-profile">
-        {editMode ? (
-          <button onClick={handleDelete}>Delete Profile</button>
-        ) : (
-          <button onClick={handleDelete}>Delete Profile</button>
-        )}
+        <button onClick={handleDelete}>Delete Profile</button>
       </div>
     </>
   );

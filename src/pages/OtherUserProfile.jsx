@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import '../css/Profile.css'; // Reuse the same CSS file
+import { Card, Button, Container, Alert, Spinner } from 'react-bootstrap';
+import '../css/Profile.css'; // Reuse the same CSS file for additional styling
 
 function OtherUserProfile() {
   const [userProfile, setUserProfile] = useState(null);
@@ -15,7 +16,6 @@ function OtherUserProfile() {
         const response = await axios.get(`https://chatify-api.up.railway.app/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('API Response:', response.data); // Add this line
         setUserProfile(Array.isArray(response.data) ? response.data[0] : response.data);
       } catch (error) {
         setError('Failed to fetch user profile');
@@ -27,22 +27,35 @@ function OtherUserProfile() {
   }, [userId]);
 
   if (error) {
-    return <div className="profile-container"><p className="error">{error}</p></div>;
+    return (
+      <Container className="profile-container">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    );
   }
 
   if (!userProfile) {
-    return <div className="profile-container">Loading...</div>;
+    return (
+      <Container className="profile-container">
+        <Spinner animation="border" role="status">
+          <span className="sr-only">Loading...</span>
+        </Spinner>
+      </Container>
+    );
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <img className="profile-avatar" src={userProfile.avatar} alt={userProfile.username} />
-        <p>Name: {userProfile.username}</p>
-        <p>Email: {userProfile.email}</p>
-        <p className="profile-id">User ID: {userProfile.id}</p>
-      </div>
-    </div>
+    <Container className="profile-container">
+      <Card className="profile-card">
+        <Card.Img variant="top" src={userProfile.avatar} alt={userProfile.username} />
+        <Card.Body>
+          <Card.Title>{userProfile.username}</Card.Title>
+          <Card.Text>Email: {userProfile.email}</Card.Text>
+          <Card.Text>User ID: {userProfile.id}</Card.Text>
+        </Card.Body>
+      </Card>
+      <Button variant="secondary" onClick={() => window.history.back()}>Go Back</Button>
+    </Container>
   );
 }
 

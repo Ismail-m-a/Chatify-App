@@ -77,3 +77,6 @@ button:hover {
   color: red;
   text-align: center;
 }
+a{
+  text-decoration: none !important;
+}

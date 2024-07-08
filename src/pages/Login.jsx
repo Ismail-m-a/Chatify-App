@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../css/Login.css';
 
 function Login() {
@@ -8,6 +8,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [csrfToken, setCsrfToken] = useState('');
   const [error, setError] = useState('');
+  const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,26 +61,35 @@ function Login() {
 
         if (userResponse.data) {
           localStorage.setItem('user', JSON.stringify(userResponse.data));
-          navigate('/chat');
+          const redirectTo = location.state?.from?.pathname || '/chat';
+          navigate(redirectTo);
         } else {
           setError('Failed to fetch user data.');
         }
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError(error.response?.data?.message || 'Failed to login');
+      setError(error.response?.data?.message || 'Invalid credentials');
     }
   };
-
+ 
   return (
-    <div className='container'>
-      <h2>Login 🔐</h2>
-      <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-      <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={handleLogin}>Login</button>
-      {error && <p className='error'>{error}</p>}
-      <p>Don't have an account? <Link to="/register">Register</Link></p>
-    </div>
+    <>
+      <h2>Log into IMA</h2>
+      <div className='container'>
+        <input type="text" placeholder="Username👤" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input type="password" placeholder="Password🔐" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <button onClick={handleLogin}>Login</button>
+        {error && <p className='error'>{error}</p>}
+        <p>Don't have an account? <Link to="/register">Register</Link></p>
+      </div>
+      {/* Warning message for protected route access */}
+      {location.state && location.state.protectedRoute && (
+        <div className="alert alert-warning text-center mt-3">
+          Please login first.
+        </div>
+      )}
+    </>
   );
 }
 

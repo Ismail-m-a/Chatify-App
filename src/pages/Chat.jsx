@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Card, Form, Button, Image } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Image, Spinner } from 'react-bootstrap';
 import DOMPurify from 'dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import '../css/Chat.css';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
-// import ScrollToBottom from 'react-scroll-to-bottom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -20,9 +21,7 @@ function Chat() {
   const navigate = useNavigate();
   const messageRef = useRef(null);
   const inputRef = useRef(null);
-
-
- 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -53,12 +52,13 @@ function Chat() {
   console.log('JWT Token:', jwtToken); // Log the JWT token
 
   useEffect(() => {
-    const debouncedFetchMessages = debounce(async () => {
+    const fetchMessages = debounce(async () => {
       if (!jwtToken) {
         console.error('No token found, redirecting to login');
         navigate('/login'); // Redirect to login if no token found
         return;
       }
+      setIsLoading(true);
       try {
         const response = await fetch(`https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`, {
           headers: { Authorization: `Bearer ${jwtToken}` }
@@ -107,15 +107,17 @@ function Chat() {
       } catch (error) {
         console.error('Error fetching messages:', error);
         toast.error('Failed to fetch messages.');
+      } finally {
+        setIsLoading(false);
       }
     }, 1000);
 
     if (conversationId) {
-      debouncedFetchMessages();
+      fetchMessages();
     }
 
     return () => {
-      debouncedFetchMessages.cancel();
+      fetchMessages.cancel();
     };
   }, [jwtToken, conversationId]);
 
@@ -135,7 +137,6 @@ function Chat() {
     }
   };
 
-
   const scrollToBottom = () => {
     if (messageRef.current) {
       messageRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -152,10 +153,9 @@ function Chat() {
     scrollToBottom();
   }, [messages]); // Scroll to bottom when messages change
 
-  useEffect (() => {
+  useEffect(() => {
     focusInputField();
   }, [newMessage]);
-
 
   const addMessage = async () => {
     if (!newMessage.trim()) return;
@@ -205,8 +205,8 @@ function Chat() {
             user, 
             createdAt: timestamp,
             userId: user.id 
-           }
-          ]);
+          }
+        ]);
       } else {
         toast.error('Failed to send message');
       }
@@ -247,16 +247,6 @@ function Chat() {
     navigate('/login');
   };
 
-  // const formatDate = (timestamp) => {
-  //   const date = new Date(timestamp);
-  //   return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString();
-  // };
-
-  // const formatTime = (timestamp) => {
-  //   const time = new Date(timestamp);
-  //   return isNaN(time.getTime()) ? 'Invalid Time' : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  // };
-
   const formatDateTime = (timestamp) => {
     const dateTime = new Date(timestamp);
     if (isNaN(dateTime.getTime())) {
@@ -272,24 +262,15 @@ function Chat() {
     return `${dateTime.toLocaleDateString('en-US', options)} `;
   };
 
-  // Updated: Function to determine if date divider should be displayed
   const shouldDisplayDateDivider = (currentMessage, previousMessage) => {
     if (!previousMessage) {
-      return true; // Always show divider for the first message
+      return true;
     }
 
     const currentDateTime = new Date(currentMessage.createdAt);
     const previousDateTime = new Date(previousMessage.createdAt);
-
-    // Compare dates (ignoring time for simplicity)
-    const currentDay = currentDateTime.getDate();
-    const previousDay = previousDateTime.getDate();
-
-    // Show divider if dates are different
-    return currentDay !== previousDay;
+    return currentDateTime.getHours() !== previousDateTime.getHours();
   };
- 
-  
 
   return (
     <Container fluid className="py-5 h-100" style={{ backgroundColor: '#eee' }}>
@@ -300,80 +281,81 @@ function Chat() {
             <Card.Header className="d-flex justify-content-between align-items-center p-3" style={{ borderTop: '4px solid #ffa900' }}>
               <h5 className="mb-0">Chat messages</h5>
               <div className="d-flex flex-row align-items-center">
-                <Button variant='outline-danger' className='logout' onClick={handleLogout}>Logout</Button>
+                <Button variant='outline-danger' className='logout' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Logout </Button>
               </div>
             </Card.Header>
             <Card.Body className="scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
-  <div className="chat-window">
-    {messages.map((message, index) => {
-      const timestamp = message.createdAt;
-      const date = new Date(timestamp);
-      const isValidDate = !isNaN(date.getTime());
-      
-      const messageUser = users[message.userId] || (message.user && message.user[0]); // Updated to ensure user details are fetched correctly;
-      const username = messageUser?.username || 'Unknown';
-      const avatar = message.user?.avatar || 'default-avatar.png';
-      const isCurrentUser = message.userId === user?.id;
-      
-      // Updated: Check if current message's date divider should be displayed
-      const showDateDivider = shouldDisplayDateDivider(message, messages[index - 1]);
+              {isLoading ? (
+                <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                  <Spinner animation="border" role="status" variant="primary">
+                    <span className="visually-hidden">Loading...</span>
+                  </Spinner>
+                  <p className="mt-2">Loading chat...</p>
+                </div>
+              ) : (
+                <div className="chat-window">
+                  {messages.map((message, index) => {
+                    const timestamp = message.createdAt;
+                    const date = new Date(timestamp);
+                    const isValidDate = !isNaN(date.getTime());
+                    const messageUser = users[message.userId] || (message.user && message.user[0]);
+                    const username = messageUser?.username || 'Unknown';
+                    const avatar = message.user?.avatar || 'default-avatar.png';
+                    const isCurrentUser = message.userId === user?.id;
+                    const showDateDivider = shouldDisplayDateDivider(message, messages[index - 1]);
 
-    
+                    const MessageMenu = ({ handleDelete, handleEdit }) => {
+                      const [isOpen, setIsOpen] = useState(false);
 
-      const MessageMenu = ({ handleDelete, handleEdit }) => {
-        const [isOpen, setIsOpen] = useState(false); // State to track menu visibility
+                      const toggleMenu = () => setIsOpen(!isOpen);
 
-        const toggleMenu = () => setIsOpen(!isOpen);
+                      return (
+                        <div className="message-menu">
+                          <button className='menu-btn' onClick={toggleMenu}>
+                            <i className="fas fa-ellipsis-v"></i>
+                          </button>
+                          {isOpen && (
+                            <ul className="message-menu-options">
+                              <Button variant='danger'><li onClick={() => { handleDelete(); setIsOpen(false); }}>Delete</li></Button>
+                            </ul>
+                          )}
+                        </div>
+                      );
+                    };
 
-        return (
-          <div className="message-menu">
-            <button className='menu-btn' onClick={toggleMenu}>
-              <i className="fas fa-ellipsis-v"></i> {/* Font Awesome icon for 3 dots */}
-            </button>
-            {isOpen && (
-              <ul className="message-menu-options">
-                <li onClick={() => { handleDelete(); setIsOpen(false); }}>Delete</li>
-                <li onClick={() => { handleEdit(); setIsOpen(false); }}>Edit</li>
-              </ul>
-            )}
-          </div>
-        );
-      };
-
-      return (
-        <React.Fragment key={message.id}>
-          {showDateDivider && (
-            <div className="divider align-items-center mb-4">
-              <p className="small mb-1 text-muted" style={{ display: 'inline-block' }}>{isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}</p>
-            </div>
-          )}
-          <div className={`d-flex flex-row justify-content-${isCurrentUser ? 'end' : 'start'} mb-4 pt-1`}>
-            {!isCurrentUser && (
-              <Image src={avatar} title={username} alt={`${username} avatar`} style={{ width: '45px', height: '45px' }} roundedCircle onClick={() => navigate(`/user/${message.userId}`)} className='chat-avatar' />
-            )}
-            <div>
-              <p className={`small p-2 ${isCurrentUser ? 'me-3 text-white bg-primary' : 'ms-3'} mb-3 rounded-3 `} style={{ backgroundColor: !isCurrentUser ? '#f5f6f7' : '' }} title={isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}>
-                {message.text}
-              </p>
-            </div>
-            {isCurrentUser && (
-              <>
-                <MessageMenu handleDelete={() => handleDeleteMessage(message.id)} handleEdit={() => handleEditMessage(message.id)} />
-                <Image src={user?.avatar || 'default-avatar.png'} title={username} alt={`${username} avatar`} roundedCircle onClick={() => navigate(`/profile`)} className="chat-avatar" />
-              </>
-            )}
-          </div>
-        </React.Fragment>
-      );
-    })}
-    <div ref={messageRef} />
-  </div>
-</Card.Body>
-
+                    return (
+                      <React.Fragment key={message.id}>
+                        {showDateDivider && (
+                          <div className="divider align-items-center mb-4">
+                            <p className="small mb-1 text-muted" style={{ display: 'inline-block' }}>{isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}</p>
+                          </div>
+                        )}
+                        <div className={`d-flex flex-row justify-content-${isCurrentUser ? 'end' : 'start'} mb-4 pt-1`}>
+                          {!isCurrentUser && (
+                            <Image src={avatar} title={username} alt={`${username} avatar`} style={{ width: '45px', height: '45px' }} roundedCircle onClick={() => navigate(`/user/${message.userId}`)} className='chat-avatar' />
+                          )}
+                          <div>
+                            <p className={`small p-2 ${isCurrentUser ? 'me-3 text-white bg-primary' : 'ms-3'} mb-3 rounded-3 `} style={{ backgroundColor: !isCurrentUser ? '#f5f6f7' : '' }} title={isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}>
+                              {message.text}
+                            </p>
+                          </div>
+                          {isCurrentUser && (
+                            <>
+                              <MessageMenu handleDelete={() => handleDeleteMessage(message.id)} handleEdit={() => handleEditMessage(message.id)} />
+                              <Image src={user?.avatar || 'default-avatar.png'} title={username} alt={`${username} avatar`} roundedCircle onClick={() => navigate(`/profile`)} className="chat-avatar" />
+                            </>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
+                  <div ref={messageRef} />
+                </div>
+              )}
+            </Card.Body>
             <Card.Footer className="text-muted d-flex justify-content-start align-items-center p-3" id='chat-input'>
               <Form.Control
                 ref={inputRef}
-  
                 type="text"
                 placeholder="Type message"
                 value={newMessage}

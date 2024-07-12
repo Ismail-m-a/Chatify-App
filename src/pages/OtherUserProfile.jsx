@@ -5,6 +5,7 @@ import { Card, Button, Container, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faIdBadge, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import '../css/Profile.css';
+import { faFacebook, faGithub, faInstagram, faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
 function OtherUserProfile() {
   const [userProfile, setUserProfile] = useState(null);
@@ -50,7 +51,7 @@ function OtherUserProfile() {
 
   return (
     <>
-      <Container className="profile-container d-flex justify-content-center align-items-center">
+      <div className="profile-container d-flex justify-content-center align-items-center">
         <Card className="profile-card text-center">
         <div className='d-flex justify-content-end'>
             <div className="d-flex justify-content-end">
@@ -62,6 +63,28 @@ function OtherUserProfile() {
             <div className="profile-header d-flex flex-column align-items-center">
               <img className="profile-avatar" src={userProfile.avatar} alt={userProfile.username} />
             </div>
+          <div className="text-content text-center soical-media">
+              <p>Welcome to my profile</p>
+              <p>Follow me on other social media platforms:</p>
+              <div></div>
+              <div className="social-icons">
+                <a href={`https://www.linkedin.com/in/${userProfile.linkedInId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faLinkedin} />
+                </a>
+                <a href={`https://www.twitter.com/${userProfile.twitterId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faXTwitter} />
+                </a>
+                <a href={`https://www.facebook.com/${userProfile.facebookId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faFacebook} />
+                </a>
+                <a href={`https://www.instagram.com/${userProfile.instagramId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faInstagram} />
+                </a>
+                <a href={`https://www.github.com/${userProfile.githubId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faGithub} />
+                </a>
+              </div>
+          </div>
             <div className="text-content text-justify">
               <p><FontAwesomeIcon icon={faUser} /> Name: {userProfile.username}</p>
               <p><FontAwesomeIcon icon={faEnvelope} /> Email: {userProfile.email}</p>
@@ -77,7 +100,7 @@ function OtherUserProfile() {
             </Button>
           </Card.Body>
         </Card>
-      </Container>
+      </div>
     </>
   );
 }

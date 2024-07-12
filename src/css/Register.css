@@ -1,3 +1,4 @@
+/* Register.css */
 .container {
   max-width: 400px;
   margin: 20px auto;
@@ -15,12 +16,19 @@ h2 {
 
 input[type="text"],
 input[type="password"],
-input[type="email"] {
+input[type="email"],
+input[type="date"],
+textarea {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
+}
+
+textarea {
+  height: 100px;
+  resize: vertical;
 }
 
 .avatar-section {
@@ -77,6 +85,7 @@ button:hover {
   color: red;
   text-align: center;
 }
-a{
+
+a {
   text-decoration: none !important;
 }

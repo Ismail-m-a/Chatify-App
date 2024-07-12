@@ -41,9 +41,15 @@ function Login() {
   };
 
   const handleLogin = async () => {
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    if (!trimmedUsername || !trimmedPassword) {
+      setError('Please enter both username and password.');
+      return;
+    }
     const payload = {
-      username,
-      password,
+      username: trimmedUsername,
+      password: trimmedPassword,
       csrfToken
     };
 
@@ -60,6 +66,7 @@ function Login() {
         });
 
         if (userResponse.data) {
+          console.log(userResponse.data); 
           localStorage.setItem('user', JSON.stringify(userResponse.data));
           const redirectTo = location.state?.from?.pathname || '/chat';
           navigate(redirectTo);
@@ -69,16 +76,16 @@ function Login() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError(error.response?.data?.message || 'Invalid credentials');
+      setError(error.response?.data?.message || 'Wrong username or password, try again!');
     }
   };
  
   return (
     <>
-      <h2>Log into IMA</h2>
+      <h2>Log in to IMA </h2>
       <div className='container'>
-        <input type="text" placeholder="Username👤" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input type="password" placeholder="Password🔐" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <input type="text" placeholder="Username👤" value={username} onChange={(e) => setUsername(e.target.value)} required/>
+        <input type="password" placeholder="Password🔐" value={password} onChange={(e) => setPassword(e.target.value)} required/>
         <button onClick={handleLogin}>Login</button>
         {error && <p className='error'>{error}</p>}
         <p>Don't have an account? <Link to="/register">Register</Link></p>

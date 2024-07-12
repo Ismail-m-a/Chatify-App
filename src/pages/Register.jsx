@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { ToastContainer, toast } from 'react-toastify';
+import { Button } from 'react-bootstrap';
 import 'react-toastify/dist/ReactToastify.css'
 import '../css/Register.css';
 
@@ -42,7 +43,7 @@ function Register() {
       const trimmedEmail = email.trim();
 
       if (!trimmedUsername || !trimmedPassword || !trimmedEmail) {
-        setError('All fields are required');
+        setError('All fields are required ✍️');
         return;
       }
       const response = await axios.post(`${import.meta.env.VITE_API_URL}auth/register`, {
@@ -101,10 +102,10 @@ function Register() {
             ))}
           </div>
         )}
-        <button type="button" onClick={generateRandomAvatars}>Generate Avatars</button>
       </div>
+      <Button variant='secondary' type="button" onClick={generateRandomAvatars}>Generate Avatars</Button>
+      <Button variant='success' onClick={handleRegister}>Register</Button>
 
-      <button onClick={handleRegister}>Register</button>
       {error && <p className='error' dangerouslySetInnerHTML={{ __html: error }} />}
 
     </div>

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, Button, Container, Spinner, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faPenToSquare, faTrash, faEnvelope, faLock, faIdBadge, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faPenToSquare, faTrash, faEnvelope, faLock, faIdBadge, faRightFromBracket, faCaretDown, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faFacebook, faGithub, faInstagram, faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { faUser as faRegularUser } from '@fortawesome/free-regular-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { ToastContainer, toast } from 'react-toastify';
@@ -20,6 +22,7 @@ function Profile() {
   const [generatedAvatars, setGeneratedAvatars] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
   const loadUserData = () => {
@@ -31,6 +34,8 @@ function Profile() {
         try {
           const userData = JSON.parse(storedUser) || [];
           if (userData.length > 0 && userData[0] && typeof userData[0] === 'object' && 'id' in userData[0]) {
+            console.log('Stored User:', storedUser); // Debug log
+console.log('Parsed User Data:', userData); // Debug log
             const currentUser = userData[0];
             setUser(currentUser);
             setUpdatedUsername(currentUser.username);
@@ -173,7 +178,7 @@ function Profile() {
   const handleShowDeleteModal = () => setShowDeleteModal(true);
 
   const generateAvatars = () => {
-    const newAvatarUrls = Array.from({ length: 5 }, () => `https://i.pravatar.cc/300?u=${uuidv4()}`);
+    const newAvatarUrls = Array.from({ length: 6 }, () => `https://i.pravatar.cc/300?u=${uuidv4()}`);
     setGeneratedAvatars(newAvatarUrls);
   };
 
@@ -184,6 +189,10 @@ function Profile() {
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
+  };
+
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
   };
 
   if (isLoading) {
@@ -214,11 +223,37 @@ function Profile() {
   return (
     <>
       <ToastContainer />
-      <Container className="profile-container d-flex justify-content-center align-items-center">
+      <div className="profile-container d-flex justify-content-center align-items-center">
         <Card className="profile-card text-center">
           <div className='d-flex justify-content-end'>
             <div className="d-flex justify-content-end">
-              <Button variant='outline-danger' className='logout' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Log Out</Button>
+            <div className="dropdown">
+              <div onClick={toggleDropdown} className="dropbtn">
+                {/* <span>{user.username}</span> */}
+                <FontAwesomeIcon icon={faBars} />
+              </div>
+              {showDropdown && (
+                <div id="myDropdown" className="dropdown-content">
+                  <img className="profile-icon" src={user.avatar} alt={user.username} style={{
+                        borderRadius: '50%', // Create a circle shape
+                        border: '2px solid blue', // Add a black border with desired width
+                        padding: '5px' // Adjust padding for spacing between icon and border (optional)
+                    }}/>
+                  {/* <FontAwesomeIcon className='profile-icon' icon={faUser} style={{
+                        borderRadius: '50%', // Create a circle shape
+                        border: '2px solid blue', // Add a black border with desired width
+                        padding: '5px' // Adjust padding for spacing between icon and border (optional)
+                    }}/> */}
+                  {/* <FontAwesomeIcon icon={faCaretDown} /> */}
+                  <Button variant="primary" size="sm" onClick={handleUpdate} className="me-2 profile-btn" title="Edit Profile"> <FontAwesomeIcon icon={faPenToSquare} /> Edit profile</Button>
+                  <Button variant="danger" size="sm" onClick={handleShowDeleteModal} className="me-2 profile-btn"  title='Delete Profile'> <FontAwesomeIcon icon={faTrash} /> Delete profile</Button>
+                  <Button variant='outline-danger' size="sm" className='me-2 profile-btn' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Log Out</Button>
+                  {/* <a href="#">Link 2</a>
+                  <a href="#">Link 3</a> */}
+                </div>
+              )}
+            </div>
+              {/* <Button variant='outline-danger' className='logout' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Log Out</Button> */}
             </div>
           </div>
           <h2 className="profile-title">Profile</h2>
@@ -229,6 +264,28 @@ function Profile() {
                 <Button variant="primary" size="sm" onClick={handleUpdate} className="me-2" title="Edit Profile"> <FontAwesomeIcon icon={faPenToSquare} /></Button>
                 <Button variant="danger" size="sm" onClick={handleShowDeleteModal} title='Delete Profile'> <FontAwesomeIcon icon={faTrash} /></Button>
               </div>
+              <div className="text-content text-center soical-media">
+              <p>Welcome to my profile</p>
+              <p>Follow me on other social media platforms:</p>
+              <div></div>
+              <div className="social-icons">
+                <a href={`https://www.linkedin.com/in/${user.linkedInId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faLinkedin} />
+                </a>
+                <a href={`https://www.twitter.com/${user.twitterId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faXTwitter} />
+                </a>
+                <a href={`https://www.facebook.com/${user.facebookId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faFacebook} />
+                </a>
+                <a href={`https://www.instagram.com/${user.instagramId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faInstagram} />
+                </a>
+                <a href={`https://www.github.com/${user.githubId}`} target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faGithub} />
+                </a>
+              </div>
+          </div>
             </div>
             {editMode && <Button onClick={generateAvatars} className="mt-3" size="sm">Generate Avatar</Button>}
             {editMode && generatedAvatars.length > 0 && (
@@ -310,7 +367,7 @@ function Profile() {
             </div>
           </Modal.Footer>
         </Modal>
-      </Container>
+      </div>
     </>
   );
 }

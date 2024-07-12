@@ -120,3 +120,78 @@ button.btn-sm {
 .go-chat{
   width: 20%;
 }
+
+.social-media {
+  margin: 20px 0;
+}
+
+.social-icons a {
+  color: #007bff;
+  font-size: 24px;
+  margin: 0 10px;
+  transition: transform 0.3s, color 0.3s;
+}
+
+.social-icons a:hover {
+  color: #0056b3;
+  transform: scale(1.2);
+}
+
+/* App.css */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropbtn {
+  background-color: transparent;
+  color: black;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+.dropbtn:hover {
+  border: 1px solid black;
+  
+}
+#myDropdown{
+  transform: translateX(-100px);
+}
+.profile-btn{
+  width: 80%;
+}
+.profile-icon{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+/* 
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+} */

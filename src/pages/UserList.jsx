@@ -126,16 +126,16 @@ function UserList({ jwtToken, conversationId, currentUser }) {  // Acceptera cur
           </div>
         ) : (
           filteredUsers.map(user => {
-            const isCurrentUser = user.userId === currentUser?.id; // Check om user är current user
+            const isCurrentUser = user.userId === currentUser?.id; 
             return (
               <div key={user.userId} className="user-item d-flex align-items-center">
                 <Image 
-                  src={user.avatar || 'default-avatar.png'}  // Display user's avatar eller default image
-                  alt={`${user.username} avatar`}  // Alt text för avatar
+                  src={user.avatar || 'default-avatar.png'}  
+                  alt={`${user.username} avatar`}  
                   roundedCircle  // runda avatar image 
-                  className="user-avatar me-2"  //  styling for spacing
-                  style={{ width: '40px', height: '40px', cursor: 'pointer' }}  // Set the size of the avatar and cursor to pointer
-                  onClick={() => navigate(isCurrentUser ? '/profile' : `/user/${user.userId}`)} // Navigate based on whether the user is current
+                  className="user-avatar me-2"  //  styling för spacing
+                  style={{ width: '40px', height: '40px', cursor: 'pointer' }}  
+                  onClick={() => navigate(isCurrentUser ? '/profile' : `/user/${user.userId}`)} // Navigera baserad på om det är inloggad user (currentaUser) eller ej
                 />
                 <span className="username-Invite flex-grow-1">{user.username}</span>
                 <Button 

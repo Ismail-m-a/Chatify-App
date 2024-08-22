@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/Profile.css';
-import * as Sentry from '@sentry/react';  // Import Sentry
+import * as Sentry from '@sentry/react';  // Importera Sentry för att fånga error
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -50,13 +50,13 @@ function Profile() {
           }
         } catch (e) {
           setError('Fel vid tolkning av användardata. Vänligen logga in igen.');
-          Sentry.captureException(e);  // Capture parsing errors with Sentry
+          Sentry.captureException(e);  // Fånga errors med Sentry
         }
       } else {
         setError('Ingen användare hittades. Vänligen logga in igen.');
       }
       setIsLoading(false);
-    }, 1000); // 1 second delay (adjust as needed)
+    }, 1000); // 1 second delay 
   };
 
   useEffect(() => {
@@ -86,7 +86,7 @@ function Profile() {
       console.debug('Response från server vid uppdatering:', response); // Debug log
       return response;
     } catch (error) {
-      Sentry.captureException(error);  // Capture errors during user update
+      Sentry.captureException(error);  // Fånga errors under user update
       if (error.response && error.response.status === 400) {
         setError('Ogiltig data. Vänligen kontrollera de uppdaterade fälten och försök igen.');
       } else {
@@ -166,8 +166,8 @@ function Profile() {
           setSelectedAvatar(updatedUserData.avatar);
           setEditMode(false);
           setError('');
-          setGeneratedAvatars([]); // reset the generated avatar
-          setImageUrl(''); // reset the image url
+          setGeneratedAvatars([]); // radera generated avatar
+          setImageUrl(''); // redera image url
 
           // Visa uppdaterade fält
           const updatedField = [];
@@ -232,7 +232,7 @@ function Profile() {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      Sentry.captureException(error);  // Capture errors during file upload
+      Sentry.captureException(error);  // Fånga errors under file upload
       console.error('Uppladdning misslyckades:', error);
       toast.error('Uppladdning misslyckades: ' + error.toString());
     }
@@ -297,7 +297,7 @@ function Profile() {
   }
 
   if (error) {
-    Sentry.captureMessage('Fel vid profilvisning');  // Capture screen when error occurs
+    Sentry.captureMessage('Fel vid profilvisning');  // Fånga vid error
     return <div className="profile-container"><p className="error">{error}</p></div>;
   }
 

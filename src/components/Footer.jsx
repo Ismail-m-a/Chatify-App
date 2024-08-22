@@ -3,7 +3,7 @@ import { Container, Row, Col, Nav } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook, faTwitter, faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope, faPhone } from '@fortawesome/free-solid-svg-icons';
-import '../css/Footer.css'; // Make sure to create this CSS file for custom styles
+import '../css/Footer.css'; 
 
 function Footer() {
   return (
@@ -19,7 +19,7 @@ function Footer() {
           <Col md="4">
             <h5>Contact Us</h5>
             <p>
-              <FontAwesomeIcon icon={faEnvelope} /> Email: contact@chatapp.com
+              <FontAwesomeIcon icon={faEnvelope} /> Email: chatify@chatapp.com
             </p>
             <p>
               <FontAwesomeIcon icon={faPhone} /> Phone: +123 456 7890
@@ -45,7 +45,7 @@ function Footer() {
         </Row>
         <Row className="mt-3">
           <Col md="12" className="text-center">
-            <p className="mb-0">&copy; {new Date().getFullYear()} ChatApp. All rights reserved.</p>
+            <p className="mb-0">&copy; {new Date().getFullYear()} Chatify. All rights reserved.</p>
           </Col>
         </Row>
       </Container>

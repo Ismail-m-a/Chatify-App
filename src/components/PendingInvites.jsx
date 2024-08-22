@@ -1,9 +1,9 @@
 import React from 'react';
 import { ListGroup, Button } from 'react-bootstrap';
-import * as Sentry from '@sentry/react'; // Import Sentry
+import * as Sentry from '@sentry/react'; // Importera Sentry
 
 function PendingInvites({ invites = [], onConversationStart }) {
-  // Ensure that invites is an array
+  // Invates skall vara  array
   if (!Array.isArray(invites)) {
       try {
           invites = JSON.parse(invites);
@@ -11,7 +11,7 @@ function PendingInvites({ invites = [], onConversationStart }) {
               invites = [];
           }
       } catch (e) {
-          Sentry.captureException(e); // Capture the error with Sentry
+          Sentry.captureException(e); // Fånga error med  Sentry
           console.error('Failed to parse invites:', e);
           invites = [];
       }

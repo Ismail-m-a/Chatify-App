@@ -76,20 +76,13 @@ function OtherUserProfile() {
               {showDropdown && (
                 <div id="myDropdown" className="dropdown-content">
                   <img className="profile-icon" src={userProfile.avatar} alt={userProfile.username} style={{
-                        borderRadius: '50%', // Create a circle shape
-                        border: '2px solid blue', // Add a black border with desired width
-                        padding: '5px' // Adjust padding for spacing between icon and border (optional)
+                        borderRadius: '50%', 
+                        border: '2px solid blue', 
+                        padding: '5px' 
                     }}/>
-                  {/* <FontAwesomeIcon className='profile-icon' icon={faUser} style={{
-                        borderRadius: '50%', // Create a circle shape
-                        border: '2px solid blue', // Add a black border with desired width
-                        padding: '5px' // Adjust padding for spacing between icon and border (optional)
-                    }}/> */}
-                  {/* <FontAwesomeIcon icon={faCaretDown} /> */}
                  
                   <Button variant='outline-danger' size="sm" className='me-2 profile-btn' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Log Out</Button>
-                  {/* <a href="#">Link 2</a>
-                  <a href="#">Link 3</a> */}
+                  
                 </div>
               )}
             </div>

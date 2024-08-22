@@ -227,7 +227,7 @@
 @media (max-width: 576px) {
   .profile-card {
     margin: 0 1rem;
-    max-width: 100%; /* Ensure the card still fits smaller screens */
-    padding: 1rem; /* Adjust padding for smaller screens */
+    max-width: 100%; 
+    padding: 1rem; 
   }
 }

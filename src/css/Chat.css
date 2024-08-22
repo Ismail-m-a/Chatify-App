@@ -199,3 +199,61 @@
   height: 100%;
 }
 
+/* Media queries för olika skärmstorlekar */
+@media (max-width: 992px) {
+  .chat-column {
+    max-width: 90%;
+  }
+
+  .message-content {
+    max-width: 80%; /* Öka maxbredden på meddelanden på mindre skärmar */
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-column {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+
+  .chat-header, .chat-footer {
+    padding: 0.5rem;
+  }
+
+  .message-input {
+    padding: 0.5rem;
+  }
+
+  .send-button {
+    width: 35px;
+    height: 35px;
+  }
+
+  .user-avatar {
+    width: 35px;
+    height: 35px;
+  }
+
+  .message-content {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 576px) {
+  .chat-container {
+    padding: 1rem 0;
+  }
+
+  .chat-header, .chat-footer {
+    padding: 0.5rem;
+  }
+
+  .message-content {
+    padding: 0.5rem;
+    max-width: 95%;
+  }
+
+  .user-avatar {
+    margin-right: 0.25rem;
+  }
+}

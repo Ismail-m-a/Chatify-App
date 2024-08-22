@@ -1,77 +1,124 @@
 /* UserList.css */
 
+/* styling för användarlistans kort */
 .user-list-card {
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
     transition: all 0.3s ease-in-out;
     margin-bottom: 10px;
-    height: 70vh; /* Match this height with .chat-body */
+    height: 70vh; /* Matcha height med .chat-body */
 }
 
-  
-  .user-list-header {
-    background-color: #4a90e2;
-    color: white;
-    font-weight: bold;
-    padding: 15px;
-  }
-  
-  .user-list-body {
-    padding: 20px;
-  }
-  
-  .user-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #e0e0e0;
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .user-item:last-child {
-    border-bottom: none;
-  }
-  
-  .user-item:hover {
-    background-color: #f8f9fa;
-    transform: translateX(5px);
-  }
-  
-  .username-invite {
-    font-weight: 100 !important;
-    color: #333 !important;
-  }
-  
-  .invite-button {
-    background-color: #4a90e2;
-    border-color: #4a90e2;
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .invite-button:hover:not(:disabled) {
-    background-color: #3a7bd5;
-    border-color: #3a7bd5;
-    transform: scale(1.05);
-  }
-  
-  .invite-button:disabled {
-    background-color: #a0c3e8;
-    border-color: #a0c3e8;
-  }
-  
-  .search-input {
-    margin-bottom: 15px;
-  }
-  
-  .loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100px;
-  }
-  
-  .icon {
-    margin-right: 5px;
-  }
+/* Header-styling för användarlistan */
+.user-list-header {
+background-color: #4a90e2;
+color: white;
+font-weight: bold;
+padding: 15px;
+}
+
+.user-list-body {
+padding: 20px;
+}
+
+.user-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 10px 0;
+border-bottom: 1px solid #e0e0e0;
+transition: all 0.2s ease-in-out;
+}
+
+.user-item:last-child {
+border-bottom: none;
+}
+
+.user-item:hover {
+background-color: #f8f9fa;
+transform: translateX(5px);
+}
+
+.username-invite {
+font-weight: 100 !important;
+color: #333 !important;
+}
+
+.invite-button {
+background-color: #4a90e2;
+border-color: #4a90e2;
+transition: all 0.2s ease-in-out;
+}
+
+.invite-button:hover:not(:disabled) {
+background-color: #3a7bd5;
+border-color: #3a7bd5;
+transform: scale(1.05);
+}
+
+.invite-button:disabled {
+background-color: #a0c3e8;
+border-color: #a0c3e8;
+}
+
+.search-input {
+margin-bottom: 15px;
+}
+
+.loading-spinner {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100px;
+}
+
+.icon {
+margin-right: 5px;
+}
+
+
+/* Media queries för att hantera olika skärmstorlekar */
+@media (max-width: 768px) {
+    .user-list-body {
+        padding: 15px;
+    }
+
+    .user-item {
+        padding: 8px 0;
+        flex-direction: column; /* Byter layout till kolumn för mindre skärmar */
+        align-items: flex-start;
+    }
+
+    .user-avatar {
+        margin-bottom: 10px;
+    }
+
+    .invite-button {
+        margin-top: 10px;
+        width: 100%; /* Gör knappen bredare på små skärmar */
+    }
+
+    .user-list-card {
+        height: auto; /* Tillåter kortet att expandera med innehållet */
+    }
+}
+
+@media (max-width: 576px) {
+    .user-list-header {
+        padding: 10px;
+        font-size: 1.2rem; /* Minska fontstorleken på små skärmar */
+    }
+
+    .user-item {
+        padding: 5px 0;
+    }
+
+    .search-input {
+        margin-bottom: 10px;
+    }
+
+    .invite-button {
+        margin-top: 5px;
+    }
+}

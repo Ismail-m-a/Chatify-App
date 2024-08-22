@@ -120,6 +120,12 @@ function Chat() {
     };
   }, [jwtToken, conversationId]);
 
+  useEffect(() => {
+    if (messageRef.current) {
+      messageRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   const handleFetchError = (response) => {
     console.info('Handling fetch error:', response.statusText);
     Sentry.captureException(new Error(`Fetch Error: ${response.statusText}`)); // Fånga error med Sentry

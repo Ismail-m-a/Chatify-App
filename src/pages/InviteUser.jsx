@@ -1,76 +1,59 @@
-// InviteUser.jsx
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Button, Form } from 'react-bootstrap';
+import { Form, Button, Alert } from 'react-bootstrap';
+import * as Sentry from '@sentry/react';  // Import Sentry
 
-const InviteUser = ({ conversationId, jwtToken }) => {
+function InviteUser({ jwtToken, conversationId, onInviteSuccess }) {
   const [userId, setUserId] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const fetchUserDetails = async (userId) => {
-    try {
-      const response = await fetch(`https://chatify-api.up.railway.app/users/${userId}`, {
-        headers: { Authorization: `Bearer ${jwtToken}` }
-      });
-      if (!response.ok) {
-        throw new Error('User not found');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-      toast.error('Failed to fetch user details.');
-      return null;
-    }
-  };
-
-  const sendInvitation = async () => {
-    if (!userId.trim()) {
-      toast.error('Please enter a valid user ID');
-      return;
-    }
-
-    const user = await fetchUserDetails(userId);
-    if (!user) {
-      toast.error('User not found');
-      return;
-    }
+  const handleInvite = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
     try {
-      const response = await fetch(`https://chatify-api.up.railway.app/invitations`, {
+      const response = await fetch(`https://chatify-api.up.railway.app/invite/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ conversationId, userId })
+        body: JSON.stringify({ conversationId })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send invitation');
+        throw new Error('Failed to invite user');
       }
 
-      toast.success('Invitation sent successfully');
+      setSuccess('User invited successfully');
+      onInviteSuccess();
       setUserId('');
-    } catch (err) {
-      console.error('Error sending invitation:', err);
-      toast.error('Error: ' + err.message);
+    } catch (error) {
+      setError('Failed to invite user. Please try again.');
+      console.error('Error inviting user:', error);
+      Sentry.captureException(error);  // Capture the error with Sentry
     }
   };
 
   return (
-    <div className="invite-user">
-      <Form.Control
-        type="text"
-        placeholder="Enter user ID to invite"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        className="form-control me-3"
-      />
-      <Button onClick={sendInvitation} variant="warning" className="send-button">
-        Invite
+    <Form onSubmit={handleInvite}>
+      <Form.Group>
+        <Form.Control
+          type="text"
+          placeholder="Enter user ID to invite"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          required
+        />
+      </Form.Group>
+      <Button type="submit" variant="primary" className="mt-2">
+        Invite User
       </Button>
-    </div>
+      {error && <Alert variant="danger" className="mt-2">{error}</Alert>}
+      {success && <Alert variant="success" className="mt-2">{success}</Alert>}
+    </Form>
   );
-};
+}
 
-export default InviteUser;
+export default Sentry.withProfiler(Sentry.withErrorBoundary(InviteUser, { fallback: "An error has occurred" }));

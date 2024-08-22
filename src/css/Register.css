@@ -1,47 +1,63 @@
 /* Register.css */
-.container {
+
+.register-container {
   max-width: 400px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+
+.register-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
 }
 
 h2 {
+  color: #2c3e50;
   text-align: center;
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
 }
 
 input[type="text"],
 input[type="password"],
-input[type="email"],
-input[type="date"],
-textarea {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+input[type="email"] {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
 }
 
-textarea {
-  height: 100px;
-  resize: vertical;
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3498db;
+  transform: translateY(-2px);
 }
 
 .avatar-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
 .avatar-selection {
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .avatar {
@@ -49,11 +65,16 @@ textarea {
   height: 60px;
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
 }
 
 .avatar.selected {
-  border: 2px solid #007BFF;
+  border: 3px solid #3498db;
 }
 
 .selected-avatar {
@@ -64,28 +85,106 @@ textarea {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  margin-bottom: 10px;
+  margin: 0 auto;
+  display: block;
+}
+
+.image-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
 }
 
 button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background-color: #007BFF;
-  color: white;
   cursor: pointer;
-  margin-bottom: 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
+  transform: translateY(-2px);
 }
 
 .error {
-  color: red;
+  color: #e74c3c;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.upload-image {
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-a {
-  text-decoration: none !important;
+.image-container {
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.image-container img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.image-url {
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+button[type="submit"] {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .register-container {
+    padding: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .avatar {
+    width: 50px;
+    height: 50px;
+  }
 }

@@ -3,12 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, Button, Container, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faEnvelope, faIdBadge, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faEnvelope, faIdBadge, faRightFromBracket, faBars } from '@fortawesome/free-solid-svg-icons';
 import '../css/Profile.css';
 import { faFacebook, faGithub, faInstagram, faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import '../css/Profile.css';
 
 function OtherUserProfile() {
   const [userProfile, setUserProfile] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [error, setError] = useState('');
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -27,7 +29,11 @@ function OtherUserProfile() {
       }
     };
 
-    fetchUserProfile();
+    setTimeout(() => {
+
+      fetchUserProfile();
+    }, 1000);
+
   }, [userId]);
 
   if (error) {
@@ -36,10 +42,13 @@ function OtherUserProfile() {
 
   if (!userProfile) {
     return (
-      <Container className="profile-container">
-        <Spinner animation="border" role="status">
-          <span className="sr-only">Loading...</span>
-        </Spinner>
+      <Container className="profile-container d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="text-center">
+          <Spinner animation="border" role="status" variant="primary">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+          <p className="mt-2">Loading profile...</p>
+        </div>
       </Container>
     );
   }
@@ -49,13 +58,41 @@ function OtherUserProfile() {
     navigate('/login');
   };
 
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
   return (
     <>
       <div className="profile-container d-flex justify-content-center align-items-center">
-        <Card className="profile-card text-center">
-        <div className='d-flex justify-content-end'>
+        <Card className="profile-card text-center shadow-lg p-4">
+        <div className='d-flex justify-content-end align-items-center mb-3'>
             <div className="d-flex justify-content-end">
-              <Button variant='outline-danger' className='logout' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Log Out</Button>
+            <div className="dropdown">
+              <div onClick={toggleDropdown} className="dropbtn">
+                {/* <span>{user.username}</span> */}
+                <FontAwesomeIcon icon={faBars} />
+              </div>
+              {showDropdown && (
+                <div id="myDropdown" className="dropdown-content">
+                  <img className="profile-icon" src={userProfile.avatar} alt={userProfile.username} style={{
+                        borderRadius: '50%', // Create a circle shape
+                        border: '2px solid blue', // Add a black border with desired width
+                        padding: '5px' // Adjust padding for spacing between icon and border (optional)
+                    }}/>
+                  {/* <FontAwesomeIcon className='profile-icon' icon={faUser} style={{
+                        borderRadius: '50%', // Create a circle shape
+                        border: '2px solid blue', // Add a black border with desired width
+                        padding: '5px' // Adjust padding for spacing between icon and border (optional)
+                    }}/> */}
+                  {/* <FontAwesomeIcon icon={faCaretDown} /> */}
+                 
+                  <Button variant='outline-danger' size="sm" className='me-2 profile-btn' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Log Out</Button>
+                  {/* <a href="#">Link 2</a>
+                  <a href="#">Link 3</a> */}
+                </div>
+              )}
+            </div>
             </div>
           </div>
           <h2 className="profile-title">Profile</h2>
@@ -63,32 +100,10 @@ function OtherUserProfile() {
             <div className="profile-header d-flex flex-column align-items-center">
               <img className="profile-avatar" src={userProfile.avatar} alt={userProfile.username} />
             </div>
-          <div className="text-content text-center soical-media">
-              <p>Welcome to my profile</p>
-              <p>Follow me on other social media platforms:</p>
-              <div></div>
-              <div className="social-icons">
-                <a href={`https://www.linkedin.com/in/${userProfile.linkedInId}`} target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faLinkedin} />
-                </a>
-                <a href={`https://www.twitter.com/${userProfile.twitterId}`} target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faXTwitter} />
-                </a>
-                <a href={`https://www.facebook.com/${userProfile.facebookId}`} target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faFacebook} />
-                </a>
-                <a href={`https://www.instagram.com/${userProfile.instagramId}`} target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faInstagram} />
-                </a>
-                <a href={`https://www.github.com/${userProfile.githubId}`} target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faGithub} />
-                </a>
-              </div>
-          </div>
             <div className="text-content text-justify">
-              <p><FontAwesomeIcon icon={faUser} /> Name: {userProfile.username}</p>
-              <p><FontAwesomeIcon icon={faEnvelope} /> Email: {userProfile.email}</p>
-              <p className="profile-id"><FontAwesomeIcon icon={faIdBadge} /> User ID: {userProfile.id}</p>
+              <p><FontAwesomeIcon icon={faUser} /> <strong>Name:</strong> {userProfile.username}</p>
+              <p><FontAwesomeIcon icon={faEnvelope} /> <strong>Email:</strong>  {userProfile.email}</p>
+              <p className="profile-id"><FontAwesomeIcon icon={faIdBadge} /> <strong>User ID:</strong>  {userProfile.id}</p>
             </div>
             <Button 
               variant="info" 

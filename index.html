@@ -4,7 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://chatify-api.up.railway.app; img-src 'self' https://i.pravatar.cc data:; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self'; 
+      connect-src 'self' https://chatify-api.up.railway.app https://api.imgbb.com https://o4507777786970112.ingest.de.sentry.io; 
+      img-src 'self' https://i.pravatar.cc https://i.ibb.co https://chatify-api.up.railway.app https://api.imgbb.com https://o4507777786970112.ingest.de.sentry.io https://fonts.googleapis.com https://fonts.gstatic.com https://images.pexels.com https://api.multiavatar.com https://m.media-amazon.com https://gravatar.com https://example.com data:; 
+      style-src 'self' 'unsafe-inline';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;
+      frame-src 'self';
+    ">
+
+
+
     <title>IMA Chat App</title>
   </head>
   <body>

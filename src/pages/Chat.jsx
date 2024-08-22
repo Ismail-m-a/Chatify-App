@@ -2,14 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Card, Form, Button, Image, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Image, Spinner, Dropdown } from 'react-bootstrap';
 import DOMPurify from 'dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import '../css/Chat.css';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faRightFromBracket, faPaperPlane, faEllipsisV, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import UserList from './UserList';
+import PendingInvites from '../components/PendingInvites';
+import * as Sentry from '@sentry/react';  // Importera Sentry
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -17,47 +21,60 @@ function Chat() {
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState({});
   const [conversationId, setConversationId] = useState('');
-  const [lastDisplayedDate, setLastDisplayedDate] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [savedConversations, setSavedConversations] = useState([]);
+  const [invites, setInvites] = useState([]);
   const navigate = useNavigate();
   const messageRef = useRef(null);
   const inputRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const jwtToken = localStorage.getItem('token');
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
+    console.info('Initializing Chat component, clearing previous messages and conversations.');
+    setMessages([]);
+    setSavedConversations([]);
+    setInvites([]);
+
+    const storedUser = localStorage.getItem('user');
+    const storedConversations = JSON.parse(localStorage.getItem('savedConversations')) || [];
+    const storedInvites = JSON.parse(localStorage.getItem('invites')) || [];
+
+    if (storedUser) {
+        console.info('Loading stored user data.');
         const parsedUser = JSON.parse(storedUser);
         const userObject = Array.isArray(parsedUser) ? parsedUser[0] : parsedUser;
-        setUser(parsedUser); // Updated to directly set the parsed user
-        if (userObject.username && userObject.avatar) {
-          setUser(userObject);
-        } else {
-          console.error('Parsed user object does not have the expected properties:', userObject);
-          setUser(null);
-        }
-      }
 
-      // Retrieve or generate the shared conversation ID
-      const sharedConversationId = '861be4f0-d38c-43a4-bac6-74ad83b5ca5b'; // Example hardcoded shared conversation ID
-      setConversationId(sharedConversationId);
-      console.log('Using conversation ID:', sharedConversationId);
-    } catch (e) {
-      console.error('Error parsing user data or generating conversation ID:', e);
-      setUser(null);
+        setUser(userObject);
+
+        // Filtrera ut invites som redan är accepterad
+        const filteredInvites = userObject.invite || [];
+        setInvites(filteredInvites);
+
+        const userConversations = storedConversations.filter(convo =>
+            (convo?.inviter === userObject?.id) || (convo?.invitees && convo.invitees.includes(userObject?.id))
+        );
+        setSavedConversations(userConversations);
+
+        if (userConversations.length > 0) {
+            setConversationId(userConversations[0].id);
+        } else if (filteredInvites.length > 0) {
+            const firstInvite = filteredInvites[0];
+            if (firstInvite.conversationId) {
+                setConversationId(firstInvite.conversationId);
+            }
+        }
     }
   }, []);
 
-  const jwtToken = localStorage.getItem('token');
-  console.log('JWT Token:', jwtToken); // Log the JWT token
 
   useEffect(() => {
     const fetchMessages = debounce(async () => {
-      if (!jwtToken) {
-        console.error('No token found, redirecting to login');
-        navigate('/login'); // Redirect to login if no token found
+      if (!jwtToken || !conversationId) {
+        console.info('No JWT token or conversationId available, skipping message fetch.');
         return;
       }
+      console.info('Fetching messages for conversation ID:', conversationId);
       setIsLoading(true);
       try {
         const response = await fetch(`https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`, {
@@ -65,47 +82,29 @@ function Chat() {
         });
 
         if (!response.ok) {
-          if (response.status === 429) {
-            toast.error('Too many requests, please try again later.');
-            return;
-          }
-          if (response.status === 403) {
-            console.error('Forbidden: You do not have access to this resource.');
-            toast.error('Forbidden: You do not have access to this resource.');
-            return;
-          }
-          console.error(`Error fetching messages: ${response.statusText}`);
-          throw new Error('Error fetching messages');
+          handleFetchError(response);
+          return;
         }
 
         const data = await response.json();
-        console.log('Fetched messages:', data); // Log fetched messages
-
-        // Extract unique userIds from messages
         const userIds = [...new Set(data.map(message => message.userId))];
-        console.log('User IDs in messages:', userIds);
-
-        // Fetch user details for each userId
         const userDetailsPromises = userIds.map(userId => fetchUserDetails(userId));
         const userDetails = await Promise.all(userDetailsPromises);
+
         const usersMap = userDetails.reduce((acc, user) => {
           if (user && Array.isArray(user) && user.length > 0) {
-            acc[user[0].id] = user[0]; // Assuming user details are in the first element of the array
+            acc[user[0].id] = user[0];
           }
           return acc;
         }, {});
         setUsers(usersMap);
-
-        // Map user details to messages
         const messagesWithUserDetails = data.map(message => ({
           ...message,
           user: usersMap[message.userId]
         }));
 
         setMessages(messagesWithUserDetails);
-        console.log('Messages with user details:', messagesWithUserDetails);
       } catch (error) {
-        console.error('Error fetching messages:', error);
         toast.error('Failed to fetch messages.');
       } finally {
         setIsLoading(false);
@@ -121,7 +120,23 @@ function Chat() {
     };
   }, [jwtToken, conversationId]);
 
+  const handleFetchError = (response) => {
+    console.info('Handling fetch error:', response.statusText);
+    Sentry.captureException(new Error(`Fetch Error: ${response.statusText}`)); // Fånga error med Sentry
+    if (response.status === 429) {
+      toast.error('Too many requests, please try again later.');
+    } else if (response.status === 403) {
+      localStorage.clear();
+      toast.error('Session ended. You have been logged out.', {
+        onClose: () => navigate('/login')
+      });
+    } else {
+      console.error(`Error fetching messages: ${response.statusText}`);
+    }
+  };
+
   const fetchUserDetails = async (userId) => {
+    console.info('Fetching details for user ID:', userId);
     try {
       const response = await fetch(`https://chatify-api.up.railway.app/users/${userId}`, {
         headers: { Authorization: `Bearer ${jwtToken}` }
@@ -131,57 +146,31 @@ function Chat() {
       }
       return await response.json();
     } catch (error) {
-      console.error('Error fetching user details:', error);
+      Sentry.captureException(error); // Fånga error med Sentry
       toast.error('Failed to fetch user details.');
       return null;
     }
   };
 
-  const scrollToBottom = () => {
-    if (messageRef.current) {
-      messageRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const focusInputField = () => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]); // Scroll to bottom when messages change
-
-  useEffect(() => {
-    focusInputField();
-  }, [newMessage]);
-
   const addMessage = async () => {
-    if (!newMessage.trim()) return;
-    if (!user) {
-      console.error('User is not defined');
-      toast.error('User is not defined');
-      return;
-    }
+    if (!newMessage.trim() || !user || !conversationId) return;
 
+    console.info('Adding new message to conversation:', conversationId);
     const sanitizedMessage = DOMPurify.sanitize(newMessage);
     const timestamp = new Date().toISOString();
 
     const payload = {
       text: sanitizedMessage,
       conversationId,
-      userId: user.id, // Use userId instead of the whole user object
+      userId: user.id,
       createdAt: timestamp
     };
-
-    console.log('Payload being sent:', payload); // Log the payload
 
     try {
       const response = await fetch(`https://chatify-api.up.railway.app/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${jwtToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -189,39 +178,57 @@ function Chat() {
 
       if (!response.ok) {
         const errorResponse = await response.json();
-        console.error('Error response from server:', errorResponse);
         throw new Error('Failed to send message');
       }
 
       const data = await response.json();
       if (data.latestMessage) {
+        console.info('Message sent successfully:', data.latestMessage);
         toast.success('Message sent');
         setNewMessage('');
         setMessages(prevMessages => [
-          ...prevMessages, 
-          { 
-            ...data.latestMessage, 
-            id: data.latestMessage.id || uuidv4(), 
-            user, 
+          ...prevMessages,
+          {
+            ...data.latestMessage,
+            id: data.latestMessage.id || uuidv4(),
+            user,
             createdAt: timestamp,
-            userId: user.id 
+            userId: user.id
           }
         ]);
+
+        updateSavedConversation(conversationId, data.latestMessage);
+
       } else {
         toast.error('Failed to send message');
       }
     } catch (err) {
-      console.error('Error sending message:', err);
+      Sentry.captureException(err); // Fånga error med Sentry
+      console.error('Error adding message:', err);
       toast.error('Error: ' + err.message);
     }
   };
 
+  const updateSavedConversation = (conversationId, latestMessage) => {
+    console.info('Updating saved conversation with latest message:', latestMessage);
+    setSavedConversations((prevConversations) => {
+      const updatedConversations = prevConversations.map(convo => {
+        if (convo.id === conversationId) {
+          return { ...convo, latestMessage };
+        }
+        return convo;
+      });
+      localStorage.setItem('savedConversations', JSON.stringify(updatedConversations));
+      return updatedConversations;
+    });
+  };
+
   const handleDeleteMessage = async (id) => {
     if (!jwtToken) {
-      console.error('No token found, redirecting to login');
-      navigate('/login'); // Redirect to login if no token found
+      navigate('/login');
       return;
     }
+    console.info('Deleting message with ID:', id);
     try {
       const response = await fetch(`https://chatify-api.up.railway.app/messages/${id}`, {
         method: 'DELETE',
@@ -232,18 +239,108 @@ function Chat() {
       }
       setMessages(messages.filter(message => message.id !== id));
     } catch (error) {
-      console.error('Error deleting message:', error);
+      Sentry.captureException(error); // Fånga error med Sentry
       toast.error('Failed to delete message.');
     }
   };
 
-  const handleEditMessage = (id) => {
-    // Implement edit functionality
-    console.log('Edit message ID:', id);
+  const handleConversationChange = (newConversationId) => {
+    console.info('Switching to new conversation ID:', newConversationId);
+    setConversationId(newConversationId);
+    saveConversation(newConversationId);
+  };
+
+  const saveConversation = async (conversationId) => {
+    console.info('Saving conversation with ID:', conversationId);
+    const conversationExists = savedConversations.some(convo => convo.id === conversationId);
+
+    if (!conversationExists) {
+      const newConversation = {
+        id: conversationId,
+        inviter: user?.id,
+        invitees: [user?.id],
+      };
+      const updatedConversations = [...savedConversations, newConversation];
+      setSavedConversations(updatedConversations);
+      localStorage.setItem('savedConversations', JSON.stringify(updatedConversations));
+    }
+  };
+
+  const handleInviteAcceptance = async (invite) => {
+    console.info('Invite accepted for conversation:', invite.conversationId);
+
+    // Spara conversationer både inviter and invitee
+    await saveConversation(invite.conversationId);
+
+    // Växla till conversationen kopplade till accepterad invite
+    setConversationId(invite.conversationId);
+
+    // Fetcha the senaste messages i conversation
+    await fetchMessagesAfterJoining(invite.conversationId);
+
+    // Updatera invites state och ta bort accepterad invite
+    setInvites((prevInvites) => {
+        const validInvites = Array.isArray(prevInvites) ? prevInvites : [];
+        return validInvites.filter(i => i.conversationId !== invite.conversationId);
+    });
+
+    // Updatera user object i localStorage spara ändring
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser) {
+        const userObject = Array.isArray(storedUser) ? storedUser[0] : storedUser;
+
+        
+        if (!Array.isArray(userObject.invite)) {
+            userObject.invite = [];
+        }
+
+        const updatedInvites = userObject.invite.filter(i => i.conversationId !== invite.conversationId);
+        userObject.invite = updatedInvites;
+        localStorage.setItem('user', JSON.stringify([userObject]));
+
+        console.info('Updated user invites in localStorage:', userObject.invite);
+    }
+
+    // Spara updaterad invites till localStorage, spara state
+    localStorage.setItem('invites', JSON.stringify(invites));
+  };
+
+
+
+  const fetchMessagesAfterJoining = async (conversationId) => {
+    console.info('Fetching messages after joining conversation ID:', conversationId);
+    try {
+      const response = await fetch(`https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`, {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      Sentry.captureException(error); // Fånga error med Sentry
+      console.error('Error fetching messages:', error);
+      toast.error('Failed to fetch messages.');
+    }
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    console.info('Logging out user and clearing session data.');
+    // Spara conversationer coh invites till localStorage innan logout
+    localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+    localStorage.setItem('invites', JSON.stringify(invites));
+    localStorage.setItem('user', JSON.stringify(user));
+  
+    // Radera token från localStorage
+    localStorage.removeItem('token');
+  
+    setMessages([]);
+    setSavedConversations([]);
+    setInvites([]);
+    setConversationId('');
     navigate('/login');
   };
 
@@ -262,123 +359,182 @@ function Chat() {
     return `${dateTime.toLocaleDateString('en-US', options)} `;
   };
 
-  const shouldDisplayDateDivider = (currentMessage, previousMessage) => {
-    if (!previousMessage) {
-      return true;
-    }
+  const createNewConversation = async () => {
+    const newConversationId = uuidv4();
+    console.info('Creating new conversation with ID:', newConversationId);
+    setConversationId(newConversationId);
 
-    const currentDateTime = new Date(currentMessage.createdAt);
-    const previousDateTime = new Date(previousMessage.createdAt);
-    return currentDateTime.getHours() !== previousDateTime.getHours();
+    const newConversation = {
+      id: newConversationId,
+      inviter: user?.id,
+      invitees: [user?.id],
+    };
+
+    const updatedConversations = [...savedConversations, newConversation];
+    setSavedConversations(updatedConversations);
+    localStorage.setItem('savedConversations', JSON.stringify(updatedConversations));
+
+    toast.success('New conversation created');
   };
 
+  useEffect(() => {
+    console.info('Conversation ID updated to:', conversationId);
+  }, [conversationId]);
+
   return (
-    <Container fluid className="py-5 h-100" style={{ backgroundColor: '#eee' }}>
-      <ToastContainer />
-      <Row className="d-flex justify-content-center h-100">
-        <Col md="8" lg="6" xl="4">
-          <Card className="h-100">
-            <Card.Header className="d-flex justify-content-between align-items-center p-3" style={{ borderTop: '4px solid #ffa900' }}>
-              <h5 className="mb-0">Chat messages</h5>
-              <div className="d-flex flex-row align-items-center">
-                <Button variant='outline-danger' className='logout' onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Logout </Button>
+    <Container fluid className="chat-container">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <Row className="chat-row">
+        <Col md="2" className="conversation-list-column">
+          <Dropdown>
+            <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+              Saved Conversations
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              {savedConversations.map((conversation) => (
+                <Dropdown.Item key={conversation.id} onClick={() => handleConversationChange(conversation.id)}>
+                  {conversation.id}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+          <PendingInvites
+            invites={invites}
+            onConversationStart={handleInviteAcceptance}
+          />
+          {conversationId && (
+            <UserList
+              jwtToken={jwtToken}
+              conversationId={conversationId}
+              currentUser={user} 
+              onConversationChange={handleConversationChange}
+            />
+          )}
+        </Col>
+        <Col md="10" lg="8" xl="6" className="chat-column">
+          <Card className="chat-card">
+            <Card.Header className="chat-header">
+              <h5>Chat Messages</h5>
+              <div className="chat-actions">
+                <Button variant="outline-primary" className="new-chat-btn" onClick={createNewConversation}>
+                  + New Chat
+                </Button>
+                <Button variant="outline-danger" className="logout-btn" onClick={handleLogout}>
+                  <FontAwesomeIcon icon={faRightFromBracket} /> Logout
+                </Button>
               </div>
             </Card.Header>
-            <Card.Body className="scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
+            <Card.Body className="chat-body">
               {isLoading ? (
-                <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-                  <Spinner animation="border" role="status" variant="primary">
-                    <span className="visually-hidden">Loading...</span>
-                  </Spinner>
-                  <p className="mt-2">Loading chat...</p>
+                <div className="loading-spinner">
+                  <Spinner animation="border" role="status" variant="primary" />
+                  <p>Loading chat...</p>
                 </div>
               ) : (
-                <div className="chat-window">
+                <TransitionGroup className="chat-messages">
                   {messages.map((message, index) => {
-                    const timestamp = message.createdAt;
-                    const date = new Date(timestamp);
-                    const isValidDate = !isNaN(date.getTime());
-                    const messageUser = users[message.userId] || (message.user && message.user[0]);
-                    const username = messageUser?.username || 'Unknown';
-                    const avatar = message.user?.avatar || 'default-avatar.png';
-                    const isCurrentUser = message.userId === user?.id;
-                    const showDateDivider = shouldDisplayDateDivider(message, messages[index - 1]);
-
-                    const MessageMenu = ({ handleDelete, handleEdit }) => {
-                      const [isOpen, setIsOpen] = useState(false);
-
-                      const toggleMenu = () => setIsOpen(!isOpen);
-
-                      return (
-                        <div className="message-menu">
-                          <button className='menu-btn' onClick={toggleMenu}>
-                            <i className="fas fa-ellipsis-v"></i>
-                          </button>
-                          {isOpen && (
-                            <ul className="message-menu-options">
-                              <Button variant='danger'><li onClick={() => { handleDelete(); setIsOpen(false); }}>Delete</li></Button>
-                            </ul>
-                          )}
-                        </div>
-                      );
-                    };
-
+                    const nodeRef = React.createRef(); // Create nodeRef for each message
                     return (
-                      <React.Fragment key={message.id}>
-                        {showDateDivider && (
-                          <div className="divider align-items-center mb-4">
-                            <p className="small mb-1 text-muted" style={{ display: 'inline-block' }}>{isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}</p>
-                          </div>
-                        )}
-                        <div className={`d-flex flex-row justify-content-${isCurrentUser ? 'end' : 'start'} mb-4 pt-1`}>
-                          {!isCurrentUser && (
-                            <Image src={avatar} title={username} alt={`${username} avatar`} style={{ width: '45px', height: '45px' }} roundedCircle onClick={() => navigate(`/user/${message.userId}`)} className='chat-avatar' />
-                          )}
-                          <div>
-                            <p className={`small p-2 ${isCurrentUser ? 'me-3 text-white bg-primary' : 'ms-3'} mb-3 rounded-3 `} style={{ backgroundColor: !isCurrentUser ? '#f5f6f7' : '' }} title={isValidDate ? formatDateTime(timestamp) : 'Invalid Date'}>
-                              {message.text}
-                            </p>
-                          </div>
-                          {isCurrentUser && (
-                            <>
-                              <MessageMenu handleDelete={() => handleDeleteMessage(message.id)} handleEdit={() => handleEditMessage(message.id)} />
-                              <Image src={user?.avatar || 'default-avatar.png'} title={username} alt={`${username} avatar`} roundedCircle onClick={() => navigate(`/profile`)} className="chat-avatar" />
-                            </>
-                          )}
-                        </div>
-                      </React.Fragment>
+                      <CSSTransition
+                        key={message.id}
+                        timeout={300}
+                        classNames="message"
+                        nodeRef={nodeRef} // Pass the ref to CSSTransition
+                      >
+                        <MessageBubble
+                          message={message}
+                          isCurrentUser={message.userId === user?.id}
+                          showDateDivider={shouldDisplayDateDivider(message, messages[index - 1])}
+                          onDelete={() => handleDeleteMessage(message.id)}
+                          formatDateTime={formatDateTime}
+                          users={users}
+                          nodeRef={nodeRef} // Pass the ref to MessageBubble
+                        />
+                      </CSSTransition>
                     );
                   })}
-                  <div ref={messageRef} />
-                </div>
+                </TransitionGroup>
               )}
+              <div ref={messageRef} />
             </Card.Body>
-            <Card.Footer className="text-muted d-flex justify-content-start align-items-center p-3" id='chat-input'>
-              <Form.Control
-                ref={inputRef}
-                type="text"
-                placeholder="Type message"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="form-control me-3"
-              />
-              <Button onClick={addMessage} variant="warning" className="send-button">
-                Send
-              </Button>
+            <Card.Footer className="chat-footer">
+              <Form onSubmit={(e) => { e.preventDefault(); addMessage(); }} className="message-form">
+                <Form.Control
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="message-input"
+                />
+                <Button type="submit" variant="primary" className="send-button">
+                  <FontAwesomeIcon icon={faPaperPlane} />
+                </Button>
+              </Form>
             </Card.Footer>
           </Card>
         </Col>
       </Row>
     </Container>
   );
-
-  function handleKeyPress(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addMessage();
-    }
-  }
 }
 
-export default Chat;
+function MessageBubble({ message, isCurrentUser, showDateDivider, onDelete, formatDateTime, users, nodeRef }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const messageUser = users[message.userId] || (message.user && message.user[0]);
+  const username = messageUser?.username || 'Unknown';
+  const avatar = message.user?.avatar || 'default-avatar.png';
+  const navigate = useNavigate();
+
+  return (
+    <>
+      {showDateDivider && (
+        <div className="date-divider">
+          <span>{formatDateTime(message.createdAt)}</span>
+        </div>
+      )}
+      <div ref={nodeRef} className={`message-bubble ${isCurrentUser ? 'current-user' : ''}`}>
+        <Image
+          src={avatar}
+          title={username}
+          alt={`${username} avatar`}
+          className="user-avatar"
+          roundedCircle
+          onClick={() => navigate(isCurrentUser ? '/profile' : `/user/${message.userId}`)}
+        />
+        <div className="message-content">
+          <p>{message.text}</p>
+          <span className="message-time">{formatDateTime(message.createdAt)}</span>
+        </div>
+        {isCurrentUser && (
+          <div className="message-actions">
+            <Button size='sm' variant="link" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <FontAwesomeIcon icon={faEllipsisV} />
+            </Button>
+            {isMenuOpen && (
+              <div className="message-menu">
+                <Button variant="danger" className='btn-sm' size="sm" onClick={onDelete}>
+                  <FontAwesomeIcon icon={faTrash} /> Delete
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+
+function shouldDisplayDateDivider(currentMessage, previousMessage) {
+  if (!previousMessage) {
+    return true;
+  }
+  const currentDateTime = new Date(currentMessage.createdAt);
+  const previousDateTime = new Date(previousMessage.createdAt);
+  return currentDateTime.toDateString() !== previousDateTime.toDateString();
+}
+
+// Wrap the Chat component with Sentry's withErrorBoundary and withProfiler
+export default Sentry.withProfiler(Sentry.withErrorBoundary(Chat, { fallback: "An error has occurred" })); // Sentry error boundary and profiler

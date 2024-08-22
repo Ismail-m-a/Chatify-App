@@ -62,7 +62,6 @@ function SideNav() {
         )}
         {/* Navigation buttons */}
         <div className="nav-buttons">
-          <button onClick={() => navigate('/dashboard')}><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard</button> {/* Added Dashboard button */}
           <button onClick={() => navigate('/profile')}><FontAwesomeIcon icon={faUser} /> Profile</button>
           <button onClick={() => navigate('/chat')}><FontAwesomeIcon icon={faRocketchat} /> Chat</button>
           {isAuthenticated ? (

@@ -11,7 +11,6 @@ function SideNav() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token'); 
 
-  
   const loadUserData = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -21,7 +20,7 @@ function SideNav() {
     }
   };
 
- 
+  
   useEffect(() => {
     if (isAuthenticated) {
       console.log('SideNav: User is authenticated');  
@@ -32,7 +31,6 @@ function SideNav() {
     }
   }, [isAuthenticated]);
 
-  
   const handleLogout = () => {
     localStorage.removeItem('token'); 
     localStorage.removeItem('user'); 
@@ -40,21 +38,17 @@ function SideNav() {
     navigate('/login'); 
   };
 
-  
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
   return (
     <div className='navbar'>
-      {/* Sidebar container */}
       <div className={`sidenav ${isOpen ? 'open' : ''}`}>
-        {/* Button to close the sidebar */}
         <button className="closebtn" onClick={toggleMenu}>
           <FontAwesomeIcon icon={faSquareXmark} />
         </button>
 
-        {/* Conditionally render user section only if authenticated */}
         {isAuthenticated && user && (
           <div className="user-section">
             <img className="side-icon" src={user.avatar} alt={user.username} />
@@ -62,7 +56,6 @@ function SideNav() {
           </div>
         )}
 
-        {/* Navigation buttons */}
         <div className="nav-buttons">
           <button onClick={() => navigate('/profile')}><FontAwesomeIcon icon={faUser} /> Profile</button>
           <button onClick={() => navigate('/chat')}><FontAwesomeIcon icon={faRocketchat} /> Chat</button>
@@ -73,7 +66,6 @@ function SideNav() {
           )}
         </div>
       </div>
-      {/* Button to open the sidebar */}
       <div
         tabIndex={0}
         onClick={toggleMenu}

@@ -7,10 +7,10 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
-// import Dashboard from './pages/Dashboard';
 import OtherUserProfile from './pages/OtherUserProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import SideNav from './components/SideNav';
+import Footer from './components/Footer';  // Importera Footer componenten
 
 import './App.css';
 
@@ -35,6 +35,7 @@ function App() {
           </div>
         </div>
       </Router>
+      <Footer />
     </Sentry.ErrorBoundary>
   );
 }

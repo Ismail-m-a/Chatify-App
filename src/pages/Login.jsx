@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../css/Login.css';
 import { toast, ToastContainer } from 'react-toastify';
-import * as Sentry from '@sentry/react'; // Import Sentry
+import * as Sentry from '@sentry/react'; // Importera Sentry
+import { useAuth } from '../AuthContext'; // Importera useAuth from AuthContext
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -12,6 +13,7 @@ function Login() {
   const [error, setError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+  const { login } = useAuth(); 
 
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -76,11 +78,9 @@ function Login() {
       const response = await axios.post(`https://chatify-api.up.railway.app/auth/token`, payload);
       if (response.data && response.data.token) {
         console.info('Inloggning lyckades, hämtar användardata'); // Informationslogg
-        localStorage.setItem('token', response.data.token);
 
         const tokenPayload = decodeJWT(response.data.token);
         const userId = tokenPayload.id;
-        localStorage.setItem('userId', userId); // Store userId in localStorage
 
         const userResponse = await axios.get(`https://chatify-api.up.railway.app/users/${userId}`, {
           headers: { Authorization: `Bearer ${response.data.token}` },
@@ -88,11 +88,13 @@ function Login() {
 
         if (userResponse.data) {
           console.info('Användardata hämtad, omdirigerar till chatt'); // Informationslogg
-          localStorage.setItem('user', JSON.stringify(userResponse.data));
+          
+          login(response.data.token, userResponse.data);
+
           const redirectTo = location.state?.from?.pathname || '/chat';
           navigate(redirectTo);
 
-          // Clear input fields after successful login
+          // radera inputfält efter lycad login
           setUsername('');
           setPassword('');
         } else {

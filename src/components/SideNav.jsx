@@ -3,51 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faRightFromBracket, faRightToBracket, faUser, faSquareXmark } from '@fortawesome/free-solid-svg-icons';
 import { faRocketchat } from '@fortawesome/free-brands-svg-icons';
-import { faTachometerAlt } from '@fortawesome/free-solid-svg-icons'; // Import icon for Dashboard
 import '../css/SideNav.css';
+import { useAuth } from '../AuthContext'; 
 
 function SideNav() {
-  const [user, setUser] = useState(null); 
-  const [isOpen, setIsOpen] = useState(false); 
-  const [isAuthenticated, setIsAuthenticated] = useState(false); 
+  const [user, setUser] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
 
-  // Function to check if user is authenticated
-  const checkAuthentication = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-      loadUserData(); 
-      setIsAuthenticated(false);
-      setUser(null); 
-    }
-  };
-
-  const loadUserData = () => {
+  // check authentication status och user information
+  const checkAuthStatus = () => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      const userObject = Array.isArray(parsedUser) ? parsedUser[0] : parsedUser; 
-      setUser(userObject); 
+
+    if (isAuthenticated && storedUser) {
+      let parsedUser = JSON.parse(storedUser);
+
+      // If the user is stored as an array, extract the first element
+      if (Array.isArray(parsedUser)) {
+        parsedUser = parsedUser[0];
+      }
+
+      setUser({
+        id: parsedUser.id,
+        username: parsedUser.username,
+        avatar: parsedUser.avatar || 'default-avatar-url',
+      });
+    } else {
+      setUser(null);
     }
   };
 
- 
+  
   useEffect(() => {
-    checkAuthentication();
-  }, []);
+    checkAuthStatus(); 
+  }, [isAuthenticated]);
 
-  // Handle logout: 
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('user'); 
-    setIsAuthenticated(false); 
-    setUser(null); 
-    navigate('/login'); // Redirect to login page
+    logout();
+    navigate('/login');
   };
 
-  // Handle clicks on protected routes
-  const handleProtectedClick = (path) => {
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleProtectedRoute = (path) => {
     if (isAuthenticated) {
       navigate(path);
     } else {
@@ -55,41 +56,36 @@ function SideNav() {
     }
   };
 
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
     <div className='navbar'>
-      {/* Sidebar container */}
       <div className={`sidenav ${isOpen ? 'open' : ''}`}>
-        {/* Button to close the sidebar */}
         <button className="closebtn" onClick={toggleMenu}>
           <FontAwesomeIcon icon={faSquareXmark} />
         </button>
-
-      
-        {isAuthenticated && user && (
+        {user && (
           <div className="user-section">
             <img className="side-icon" src={user.avatar} alt={user.username} />
             <p className="username">{user.username}</p>
           </div>
         )}
-
-        {/* Navigation buttons */}
         <div className="nav-buttons">
-          <button onClick={() => handleProtectedClick('/profile')}><FontAwesomeIcon icon={faUser} /> Profile</button>
-          <button onClick={() => handleProtectedClick('/chat')}><FontAwesomeIcon icon={faRocketchat} /> Chat</button>
+          <button onClick={() => handleProtectedRoute('/profile')}>
+            <FontAwesomeIcon icon={faUser} /> Profile
+          </button>
+          <button onClick={() => handleProtectedRoute('/chat')}>
+            <FontAwesomeIcon icon={faRocketchat} /> Chat
+          </button>
           {isAuthenticated ? (
-            <button onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Logout</button>
+            <button onClick={handleLogout}>
+              <FontAwesomeIcon icon={faRightFromBracket} /> Logout
+            </button>
           ) : (
-            <button onClick={() => navigate('/login')}><FontAwesomeIcon icon={faRightToBracket} /> Login </button>
+            <button onClick={() => navigate('/login')}>
+              <FontAwesomeIcon icon={faRightToBracket} /> Login
+            </button>
           )}
         </div>
       </div>
-
-      {/* Button to open the sidebar */}
       <div
         tabIndex={0}
         onClick={toggleMenu}

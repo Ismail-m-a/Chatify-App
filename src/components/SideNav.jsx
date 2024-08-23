@@ -1,48 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faRightFromBracket, faRightToBracket, faUser, faSquareXmark } from '@fortawesome/free-solid-svg-icons';
 import { faRocketchat } from '@fortawesome/free-brands-svg-icons';
+import { AuthContext } from '../AuthContext'; // Import the AuthContext
 import '../css/SideNav.css';
 
 function SideNav() {
-  const [user, setUser] = useState(null); 
-  const [isOpen, setIsOpen] = useState(false); 
+  const [isOpen, setIsOpen] = useState(false); // State to manage the sidebar open/close state
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('token'); 
+  const { user, isAuthenticated, logout } = useContext(AuthContext); // Use the context
 
-  
-  const loadUserData = () => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      const userObject = Array.isArray(parsedUser) ? parsedUser[0] : parsedUser; 
-      setUser(userObject); 
-    }
-  };
-
- 
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log('SideNav: User is authenticated');  
-      loadUserData();
-    } else {
-      console.log('SideNav: User is not authenticated');  
-      setUser(null); 
-    }
-  }, [isAuthenticated]);
-
-  
-  const handleLogout = () => {
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('user'); 
-    setUser(null); 
-    navigate('/login'); 
-  };
-
-  
+  // Toggle the sidebar open/close state
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  // Handle logout: clear user data and navigate to login page
+  const handleLogout = () => {
+    logout();
+    navigate('/login'); // Redirect to login page
   };
 
   return (

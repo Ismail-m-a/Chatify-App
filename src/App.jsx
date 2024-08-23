@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SideNav from './components/SideNav';
 import Footer from './components/Footer';  // Importera Footer componenten
 
+
 import './App.css';
 
 function App() {

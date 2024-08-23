@@ -105,7 +105,6 @@
   top: 20px;
   left: 20px;
   cursor: pointer;
-  z-index: 1300;
 }
 
 .btn-ghost:hover {
@@ -125,6 +124,10 @@
   }
   .username {
     font-size: 18px;
+  }
+  
+  .btn-ghost {
+    z-index: 1300;
   }
 }
 

@@ -3,15 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faRightFromBracket, faRightToBracket, faUser, faSquareXmark } from '@fortawesome/free-solid-svg-icons';
 import { faRocketchat } from '@fortawesome/free-brands-svg-icons';
+import { faTachometerAlt } from '@fortawesome/free-solid-svg-icons'; // Import icon for Dashboard
 import '../css/SideNav.css';
 
 function SideNav() {
   const [user, setUser] = useState(null); 
   const [isOpen, setIsOpen] = useState(false); 
+  const [isAuthenticated, setIsAuthenticated] = useState(false); 
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('token'); 
 
-  
+  // Function to check if user is authenticated
+  const checkAuthentication = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+      loadUserData(); 
+      setIsAuthenticated(false);
+      setUser(null); 
+    }
+  };
+
   const loadUserData = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -23,24 +34,28 @@ function SideNav() {
 
  
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('SideNav: User is authenticated');  
-      loadUserData();
-    } else {
-      console.log('SideNav: User is not authenticated');  
-      setUser(null); 
-    }
-  }, [isAuthenticated]);
+    checkAuthentication();
+  }, []);
 
-  
+  // Handle logout: 
   const handleLogout = () => {
     localStorage.removeItem('token'); 
     localStorage.removeItem('user'); 
+    setIsAuthenticated(false); 
     setUser(null); 
-    navigate('/login'); 
+    navigate('/login'); // Redirect to login page
   };
 
-  
+  // Handle clicks on protected routes
+  const handleProtectedClick = (path) => {
+    if (isAuthenticated) {
+      navigate(path);
+    } else {
+      navigate('/login', { state: { protectedRoute: true } });
+    }
+  };
+
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -54,7 +69,7 @@ function SideNav() {
           <FontAwesomeIcon icon={faSquareXmark} />
         </button>
 
-        {/* Conditionally render user section only if authenticated */}
+      
         {isAuthenticated && user && (
           <div className="user-section">
             <img className="side-icon" src={user.avatar} alt={user.username} />
@@ -64,15 +79,16 @@ function SideNav() {
 
         {/* Navigation buttons */}
         <div className="nav-buttons">
-          <button onClick={() => navigate('/profile')}><FontAwesomeIcon icon={faUser} /> Profile</button>
-          <button onClick={() => navigate('/chat')}><FontAwesomeIcon icon={faRocketchat} /> Chat</button>
+          <button onClick={() => handleProtectedClick('/profile')}><FontAwesomeIcon icon={faUser} /> Profile</button>
+          <button onClick={() => handleProtectedClick('/chat')}><FontAwesomeIcon icon={faRocketchat} /> Chat</button>
           {isAuthenticated ? (
             <button onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Logout</button>
           ) : (
-            <button onClick={() => navigate('/login')}><FontAwesomeIcon icon={faRightToBracket} /> Login</button>
+            <button onClick={() => navigate('/login')}><FontAwesomeIcon icon={faRightToBracket} /> Login </button>
           )}
         </div>
       </div>
+
       {/* Button to open the sidebar */}
       <div
         tabIndex={0}

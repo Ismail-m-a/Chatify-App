@@ -7,7 +7,7 @@
     overflow-y: auto;
     transition: all 0.3s ease-in-out;
     margin-bottom: 10px;
-    height: 70vh; /* Matcha height med .chat-body */
+    height: 80vh; /* Matcha height med .chat-body */
 }
 
 /* Header-styling för användarlistan */

@@ -15,7 +15,7 @@ import Footer from './components/Footer';
 import './App.css';
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem('token'); // or however you manage authentication
+  const isAuthenticated = !!localStorage.getItem('token'); 
 
   return (
     <Sentry.ErrorBoundary fallback={"An error has occurred"}>

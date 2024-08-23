@@ -27,6 +27,7 @@ function Chat() {
   const navigate = useNavigate();
   const messageRef = useRef(null);
   const inputRef = useRef(null);
+  const headerRef = useRef(null);
 
   const jwtToken = localStorage.getItem('token');
 
@@ -121,11 +122,32 @@ function Chat() {
   }, [jwtToken, conversationId]);
 
   useEffect(() => {
+    // scrolla chat area
+    if (headerRef.current) {
+      requestAnimationFrame(() => {
+        headerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  
     if (messageRef.current) {
-      messageRef.current.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          messageRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        });
+      }, 100); 
+    }
+  
+    if (inputRef.current) {
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          inputRef.current.focus();
+        });
+      }, 200); 
     }
   }, [messages]);
-
+  
+  
+  
   const handleFetchError = (response) => {
     console.info('Handling fetch error:', response.statusText);
     Sentry.captureException(new Error(`Fetch Error: ${response.statusText}`)); // Fånga error med Sentry
@@ -419,8 +441,8 @@ function Chat() {
           )}
         </Col>
         <Col md="10" lg="8" xl="6" className="chat-column">
-          <Card className="chat-card">
-            <Card.Header className="chat-header">
+          <Card  className="chat-card">
+            <Card.Header ref={headerRef} className="chat-header">
               <h5>Chat Messages</h5>
               <div className="chat-actions">
                 <Button variant="outline-primary" className="new-chat-btn" onClick={createNewConversation}>

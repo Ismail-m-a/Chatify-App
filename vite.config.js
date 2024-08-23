@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { viteStaticCopy } from 'vite-plugin-static-copy'; // Make sure this matches the correct export name
+import { viteStaticCopy } from 'vite-plugin-static-copy'; 
 
 export default defineConfig({
   plugins: [
@@ -8,8 +8,8 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: '_redirects', // The file in the root of your project
-          dest: '.' // Copies to the root of the dist folder
+          src: '_redirects', 
+          dest: '.' 
         }
       ]
     })

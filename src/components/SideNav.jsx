@@ -3,44 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faRightFromBracket, faRightToBracket, faUser, faSquareXmark } from '@fortawesome/free-solid-svg-icons';
 import { faRocketchat } from '@fortawesome/free-brands-svg-icons';
-import { faTachometerAlt } from '@fortawesome/free-solid-svg-icons'; // Import icon for Dashboard
 import '../css/SideNav.css';
 
 function SideNav() {
-  const [user, setUser] = useState(null); // State to store user data
-  const [isOpen, setIsOpen] = useState(false); // State to manage the sidebar open/close state
+  const [user, setUser] = useState(null); 
+  const [isOpen, setIsOpen] = useState(false); 
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('token'); // Check if user is authenticated
+  const isAuthenticated = !!localStorage.getItem('token'); 
 
-  // Function to load user data from localStorage
+  
   const loadUserData = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      const userObject = Array.isArray(parsedUser) ? parsedUser[0] : parsedUser; // Handle different possible structures of stored user data
-      setUser(userObject); // Set user data in state
+      const userObject = Array.isArray(parsedUser) ? parsedUser[0] : parsedUser; 
+      setUser(userObject); 
     }
   };
 
-  // Load user data when the component mounts or when the user logs in
+ 
   useEffect(() => {
-    console.log('SideNav: User is authenticated');  // Debugging line
     if (isAuthenticated) {
+      console.log('SideNav: User is authenticated');  
       loadUserData();
     } else {
-      console.log('SideNav: User is not authenticated');  // Debugging line
+      console.log('SideNav: User is not authenticated');  
+      setUser(null); 
     }
   }, [isAuthenticated]);
 
-  // Handle logout: clear user data and navigate to login page
+  
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear token from localStorage
-    localStorage.removeItem('user'); // Clear user data from localStorage
-    setUser(null); // Clear user data from state
-    navigate('/login'); // Redirect to login page
+    localStorage.removeItem('token'); 
+    localStorage.removeItem('user'); 
+    setUser(null); 
+    navigate('/login'); 
   };
 
-  // Toggle the sidebar open/close state
+  
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -53,13 +53,15 @@ function SideNav() {
         <button className="closebtn" onClick={toggleMenu}>
           <FontAwesomeIcon icon={faSquareXmark} />
         </button>
-        {/* User section showing avatar and username */}
-        {user && isAuthenticated && (
+
+        {/* Conditionally render user section only if authenticated */}
+        {isAuthenticated && user && (
           <div className="user-section">
             <img className="side-icon" src={user.avatar} alt={user.username} />
             <p className="username">{user.username}</p>
           </div>
         )}
+
         {/* Navigation buttons */}
         <div className="nav-buttons">
           <button onClick={() => navigate('/profile')}><FontAwesomeIcon icon={faUser} /> Profile</button>
@@ -67,7 +69,7 @@ function SideNav() {
           {isAuthenticated ? (
             <button onClick={handleLogout}><FontAwesomeIcon icon={faRightFromBracket} /> Logout</button>
           ) : (
-            <button onClick={() => navigate('/login')}><FontAwesomeIcon icon={faRightToBracket} /> Login </button>
+            <button onClick={() => navigate('/login')}><FontAwesomeIcon icon={faRightToBracket} /> Login</button>
           )}
         </div>
       </div>

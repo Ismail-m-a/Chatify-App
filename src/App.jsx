@@ -7,26 +7,25 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+// import Dashboard from './pages/Dashboard';
 import OtherUserProfile from './pages/OtherUserProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import SideNav from './components/SideNav';
-import Footer from './components/Footer'; 
 
 import './App.css';
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem('token'); 
-
   return (
     <Sentry.ErrorBoundary fallback={"An error has occurred"}>
       <Router>
         <div className="app-container">
-          {isAuthenticated && <SideNav />}
-          <div className={`content-wrapper ${!isAuthenticated ? 'no-sidenav' : ''}`}>
+          <SideNav />
+          <div className="content-wrapper">
             <Routes>
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route element={<ProtectedRoute />}>
+                {/* <Route path="/dashboard" element={<Dashboard />} /> */}
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/user/:userId" element={<OtherUserProfile />} />
@@ -36,7 +35,6 @@ function App() {
           </div>
         </div>
       </Router>
-      <Footer />
     </Sentry.ErrorBoundary>
   );
 }

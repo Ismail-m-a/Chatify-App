@@ -24,11 +24,13 @@ function Register() {
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const response = await axios.patch(`${import.meta.env.VITE_API_URL}csrf`);
+        console.info('Försöker hämta CSRF-token'); // Informationslogg
+        const response = await axios.patch(`https://chatify-api.up.railway.app/csrf`);
         setCsrfToken(response.data.csrfToken);
+        console.info('CSRF-token hämtad:', response.data.csrfToken); // Informationslogg
       } catch (error) {
-        console.error('Failed to fetch CSRF token:', error);
-        setError('Failed to fetch CSRF token');
+        console.error('Misslyckades med att hämta CSRF-token:', error);
+        setError('Misslyckades med att hämta CSRF-token');
         Sentry.captureException(error); // Capture error with Sentry
       }
     };

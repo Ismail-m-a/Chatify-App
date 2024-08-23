@@ -26,7 +26,7 @@ function Register() {
     const fetchCsrfToken = async () => {
       try {
         console.info('Försöker hämta CSRF-token');
-        const response = await axios.patch(`${API_URL}csrf`);
+        const response = await axios.get(`${API_URL}csrf`); 
         setCsrfToken(response.data.csrfToken);
         console.info('CSRF-token hämtad:', response.data.csrfToken);
       } catch (error) {

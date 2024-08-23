@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../css/Login.css';
 import { toast, ToastContainer } from 'react-toastify';
 import * as Sentry from '@sentry/react'; // Import Sentry
-import { AuthContext } from '../AuthContext'; // Import AuthContext
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -13,7 +12,6 @@ function Login() {
   const [error, setError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // Use login function from AuthContext
 
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -78,24 +76,19 @@ function Login() {
       const response = await axios.post(`https://chatify-api.up.railway.app/auth/token`, payload);
       if (response.data && response.data.token) {
         console.info('Inloggning lyckades, hämtar användardata'); // Informationslogg
-        const token = response.data.token;
-        localStorage.setItem('token', token);
+        localStorage.setItem('token', response.data.token);
 
-        const tokenPayload = decodeJWT(token);
+        const tokenPayload = decodeJWT(response.data.token);
         const userId = tokenPayload.id;
         localStorage.setItem('userId', userId); // Store userId in localStorage
 
         const userResponse = await axios.get(`https://chatify-api.up.railway.app/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${response.data.token}` },
         });
 
         if (userResponse.data) {
           console.info('Användardata hämtad, omdirigerar till chatt'); // Informationslogg
           localStorage.setItem('user', JSON.stringify(userResponse.data));
-
-          // Use the login function from AuthContext to update the global user state
-          login(userResponse.data);
-
           const redirectTo = location.state?.from?.pathname || '/chat';
           navigate(redirectTo);
 

@@ -23,7 +23,7 @@ function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('API_URL:', API_URL); // Add this line to log the API_URL
+    console.log('API_URL:', API_URL); 
     const fetchCsrfToken = async () => {
       try {
         console.info('Försöker hämta CSRF-token');

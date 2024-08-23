@@ -1,4 +1,4 @@
-// Importera nödvändiga bibliotek och komponenter
+// Import necessary libraries and components
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -7,7 +7,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import { Button } from 'react-bootstrap';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/Register.css';
-import * as Sentry from '@sentry/react';  // Importera sentry för felspårning
+import * as Sentry from '@sentry/react';  // Import Sentry for error tracking
+
+const API_URL = import.meta.env.VITE_API_URL;
+const API_IMAGE_KEY = import.meta.env.VITE_API_IMAGE_URL;
 
 function Register() {
   const [username, setUsername] = useState('');
@@ -24,14 +27,14 @@ function Register() {
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        console.info('Försöker hämta CSRF-token'); // Informationslogg
-        const response = await axios.patch(`https://chatify-api.up.railway.app/csrf`);
+        console.info('Fetching CSRF token');
+        const response = await axios.patch(`${API_URL}csrf`);
         setCsrfToken(response.data.csrfToken);
-        console.info('CSRF-token hämtad:', response.data.csrfToken); // Informationslogg
+        console.info('CSRF token fetched:', response.data.csrfToken);
       } catch (error) {
-        console.error('Misslyckades med att hämta CSRF-token:', error);
-        setError('Misslyckades med att hämta CSRF-token');
-        Sentry.captureException(error); // Capture error with Sentry
+        console.error('Failed to fetch CSRF token:', error);
+        setError('Failed to fetch CSRF token');
+        Sentry.captureException(error);
       }
     };
 
@@ -56,12 +59,16 @@ function Register() {
         return;
       }
 
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}auth/register`, {
+      const response = await axios.post(`${API_URL}auth/register`, {
         username: trimmedUsername,
         password: trimmedPassword,
         email: trimmedEmail,
         avatar: selectedAvatar || imageUrl,
         csrfToken,
+      }, {
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
       });
 
       if (response.data) {
@@ -73,13 +80,13 @@ function Register() {
         }, 3000);
       }
     } catch (error) {
-      console.error('Error response:', error.response); // Log the error response for debugging
-      Sentry.captureException(error); // Capture error with Sentry
+      console.error('Error response:', error.response);
+      Sentry.captureException(error);
       if (error.response && error.response.data && error.response.data.error) {
         if (error.response.status === 400) {
-          setError('The username or email already exists. <a href="/login">Log in</a>.'); // Specific error message for existing user
+          setError('The username or email already exists. <a href="/login">Log in</a>.');
         } else {
-          setError(error.response.data.error); // Show any other error message from the API
+          setError(error.response.data.error);
         }
       } else {
         setError('Registration failed. Please try again.');
@@ -92,7 +99,7 @@ function Register() {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('key', 'd90d063f778f89dfef08730a0108753b'); // Provided imgbb API key
+    formData.append('key', API_IMAGE_KEY); // Use API key from .env
     formData.append('image', file);
 
     const apiUrl = 'https://api.imgbb.com/1/upload';
@@ -113,7 +120,7 @@ function Register() {
       toast.success('Image uploaded successfully!');
     } catch (error) {
       console.error('Upload failed:', error);
-      Sentry.captureException(error); // Capture error with Sentry
+      Sentry.captureException(error);
       toast.error('Upload failed: ' + error.toString());
     }
   };
@@ -151,25 +158,24 @@ function Register() {
               </div>
             )}
           </div>
-            {imageUrl && (
-              <div className='upload-image'>
-                <h6>Uploaded Image:</h6>
-                <div className="image-container">
-                  <img src={imageUrl} alt="Uploaded" />
-                </div>
-                <p className='image-url'>URL: <a href={imageUrl} target="_blank" rel="noopener noreferrer">{imageUrl}</a></p>
+          {imageUrl && (
+            <div className='upload-image'>
+              <h6>Uploaded Image:</h6>
+              <div className="image-container">
+                <img src={imageUrl} alt="Uploaded" />
               </div>
-            )}
+              <p className='image-url'>URL: <a href={imageUrl} target="_blank" rel="noopener noreferrer">{imageUrl}</a></p>
+            </div>
+          )}
           <div className="image-buttons">
             <Button className='btn-small' variant='secondary' type="button" onClick={generateRandomAvatars}>Generate Avatars</Button>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
             <Button onClick={() => fileInputRef.current.click()} className="btn-small">Upload Image</Button>
-
           </div>
           <Button variant='success' type="submit">Register</Button>
         </form>
         {error && <p className='error' dangerouslySetInnerHTML={{ __html: error }} />}
-          <p>Do you have already an account? <Link to="/login">Login</Link></p>
+        <p>Do you already have an account? <Link to="/login">Login</Link></p>
       </div>
     </>
   );

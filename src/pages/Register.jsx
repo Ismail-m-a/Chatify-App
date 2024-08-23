@@ -1,4 +1,3 @@
-// Import necessary libraries and components
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -7,10 +6,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import { Button } from 'react-bootstrap';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/Register.css';
-import * as Sentry from '@sentry/react';  // Import Sentry for error tracking
+import * as Sentry from '@sentry/react';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const API_IMAGE_KEY = import.meta.env.VITE_API_IMAGE_URL;
 
 function Register() {
   const [username, setUsername] = useState('');
@@ -27,10 +25,10 @@ function Register() {
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        console.info('Fetching CSRF token');
+        console.info('Försöker hämta CSRF-token');
         const response = await axios.patch(`${API_URL}csrf`);
         setCsrfToken(response.data.csrfToken);
-        console.info('CSRF token fetched:', response.data.csrfToken);
+        console.info('CSRF-token hämtad:', response.data.csrfToken);
       } catch (error) {
         console.error('Failed to fetch CSRF token:', error);
         setError('Failed to fetch CSRF token');
@@ -44,7 +42,7 @@ function Register() {
   const generateRandomAvatars = () => {
     const newAvatars = Array.from({ length: 8 }, () => `https://i.pravatar.cc/300?u=${uuidv4()}`);
     setAvatars(newAvatars);
-    setSelectedAvatar(''); // Clear the selected avatar when generating new avatars
+    setSelectedAvatar(''); 
   };
 
   const handleRegister = async (event) => {
@@ -99,7 +97,7 @@ function Register() {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('key', API_IMAGE_KEY); // Use API key from .env
+    formData.append('key', import.meta.env.VITE_API_IMAGE_URL); 
     formData.append('image', file);
 
     const apiUrl = 'https://api.imgbb.com/1/upload';

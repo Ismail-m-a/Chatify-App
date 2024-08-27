@@ -42,7 +42,7 @@ function Register() {
   
 
   const generateRandomAvatars = () => {
-    const newAvatars = Array.from({ length: 8 }, () => `https://i.pravatar.cc/300?u=${uuidv4()}`);
+    const newAvatars = Array.from({ length: 10 }, () => `https://i.pravatar.cc/300?u=${uuidv4()}`);
     setAvatars(newAvatars);
     setSelectedAvatar(''); 
   };

@@ -9,6 +9,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/Profile.css';
 import * as Sentry from '@sentry/react';  // Importera Sentry för att fånga error
+import { useAuth } from '../AuthContext';
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -25,6 +26,7 @@ function Profile() {
   const [showDropdown, setShowDropdown] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const loadUserData = () => {
     console.info('Laddar användardata...'); // Informationslogg
@@ -112,6 +114,7 @@ function Profile() {
       localStorage.clear();
       toast.info('Din profil kommer att raderas permanent.');
       setTimeout(() => {
+        logout();
         navigate('/login');
       }, 3000);
     } catch (error) {
@@ -274,7 +277,7 @@ function Profile() {
 
   const handleLogout = () => {
     console.info('Användaren loggar ut.'); // Informationslogg
-    localStorage.clear();
+    logout ();
     navigate('/login');
   };
 
@@ -335,7 +338,7 @@ function Profile() {
             </div>
             </div>
           </div>
-          <h2 className="profile-title">Profil</h2>
+          <h2 className="profile-title">Profil information</h2>
           <Card.Body>
             <div className="profile-header d-flex flex-column align-items-center">
               <img className="profile-avatar" src={user.avatar} alt={user.username} />

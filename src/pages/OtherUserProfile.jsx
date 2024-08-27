@@ -7,6 +7,7 @@ import { faUser, faEnvelope, faIdBadge, faRightFromBracket, faBars } from '@fort
 import '../css/Profile.css';
 import { faFacebook, faGithub, faInstagram, faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import '../css/Profile.css';
+import { useAuth } from '../AuthContext';
 
 function OtherUserProfile() {
   const [userProfile, setUserProfile] = useState(null);
@@ -14,6 +15,7 @@ function OtherUserProfile() {
   const [error, setError] = useState('');
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { logout } = useAuth ();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -54,7 +56,7 @@ function OtherUserProfile() {
   }
   
   const handleLogout = () => {
-    localStorage.clear();
+    logout ();
     navigate('/login');
   };
 
@@ -88,7 +90,7 @@ function OtherUserProfile() {
             </div>
             </div>
           </div>
-          <h2 className="profile-title">Profile</h2>
+          <h2 className="profile-title">Profile information</h2>
           <Card.Body>
             <div className="profile-header d-flex flex-column align-items-center">
               <img className="profile-avatar" src={userProfile.avatar} alt={userProfile.username} />

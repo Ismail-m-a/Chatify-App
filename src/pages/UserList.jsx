@@ -53,6 +53,7 @@ function UserList({ jwtToken, conversationId, currentUser }) {  // Acceptera cur
       setIsLoading(false);
     }
   };
+  
 
   // Funktion för att skicka en inbjudan till en användare
   const sendInvite = async (userId, username) => {
@@ -72,7 +73,7 @@ function UserList({ jwtToken, conversationId, currentUser }) {  // Acceptera cur
           'Authorization': `Bearer ${jwtToken}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
+        // credentials: 'include', // Kommentera för att komma undan under utvecklingen
         body: JSON.stringify(payload)
       });
 
@@ -87,7 +88,7 @@ function UserList({ jwtToken, conversationId, currentUser }) {  // Acceptera cur
           throw new Error(`Failed to send invite: ${responseBody.error || response.statusText}`);
         }
       } else {
-        toast.success(`Invitation sent successfully.`);
+        toast.success(`Invitation sent to ${username}`);
       }
     } catch (error) {
       console.error('Error sending invite:', error);

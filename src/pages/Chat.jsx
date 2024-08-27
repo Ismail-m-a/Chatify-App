@@ -14,6 +14,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import UserList from './UserList';
 import PendingInvites from '../components/PendingInvites';
 import * as Sentry from '@sentry/react';  // Importera Sentry
+import { useAuth } from '../AuthContext';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -28,6 +29,7 @@ function Chat() {
   const messageRef = useRef(null);
   const inputRef = useRef(null);
   const headerRef = useRef(null);
+  const { logout } = useAuth();
 
   const jwtToken = localStorage.getItem('token');
 
@@ -68,7 +70,7 @@ function Chat() {
     }
   }, []);
 
-
+  // useEffect för att hämta meddelanden när conversationId, jwtToken ändras.
   useEffect(() => {
     const fetchMessages = debounce(async () => {
       if (!jwtToken || !conversationId) {
@@ -87,6 +89,7 @@ function Chat() {
           return;
         }
 
+        // uppdaterar state, hämta meddelanden och användardetaljer 
         const data = await response.json();
         const userIds = [...new Set(data.map(message => message.userId))];
         const userDetailsPromises = userIds.map(userId => fetchUserDetails(userId));
@@ -121,14 +124,16 @@ function Chat() {
     };
   }, [jwtToken, conversationId]);
 
+  // useEffect för att fokusera när meddelanden uppdateras och hantera scrollning
   useEffect(() => {
-    // scrolla chat area
+    // scrolla chat header
     if (headerRef.current) {
       requestAnimationFrame(() => {
         headerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
-  
+    
+    // scrolla senaste messages
     if (messageRef.current) {
       setTimeout(() => {
         requestAnimationFrame(() => {
@@ -136,7 +141,8 @@ function Chat() {
         });
       }, 100); 
     }
-  
+    
+    // Fokusera på inputfältet
     if (inputRef.current) {
       setTimeout(() => {
         requestAnimationFrame(() => {
@@ -147,7 +153,7 @@ function Chat() {
   }, [messages]);
   
   
-  
+  // Funktion för att hantera fel vid hämtning av meddelanden
   const handleFetchError = (response) => {
     console.info('Handling fetch error:', response.statusText);
     Sentry.captureException(new Error(`Fetch Error: ${response.statusText}`)); // Fånga error med Sentry
@@ -156,13 +162,17 @@ function Chat() {
     } else if (response.status === 403) {
       localStorage.clear();
       toast.error('Session ended. You have been logged out.', {
-        onClose: () => navigate('/login')
+        onClose: () => {
+          logout (); // loggut när sessionstid slutat.
+          navigate('/login')
+        } 
       });
     } else {
       console.error(`Error fetching messages: ${response.statusText}`);
     }
   };
 
+   // Hämtar användardetaljer baserat på användar-ID
   const fetchUserDetails = async (userId) => {
     console.info('Fetching details for user ID:', userId);
     try {
@@ -180,11 +190,12 @@ function Chat() {
     }
   };
 
+  // Funktion för att skicka meddelande
   const addMessage = async () => {
     if (!newMessage.trim() || !user || !conversationId) return;
 
     console.info('Adding new message to conversation:', conversationId);
-    const sanitizedMessage = DOMPurify.sanitize(newMessage);
+    const sanitizedMessage = DOMPurify.sanitize(newMessage); // Saniterar meddelandet för att förhindra XSS
     const timestamp = new Date().toISOString();
 
     const payload = {
@@ -213,7 +224,7 @@ function Chat() {
       if (data.latestMessage) {
         console.info('Message sent successfully:', data.latestMessage);
         toast.success('Message sent');
-        setNewMessage('');
+        setNewMessage(''); // Rensar inmatningsfältet efter att meddelandet har skickats
         setMessages(prevMessages => [
           ...prevMessages,
           {
@@ -225,7 +236,7 @@ function Chat() {
           }
         ]);
 
-        updateSavedConversation(conversationId, data.latestMessage);
+        updateSavedConversation(conversationId, data.latestMessage); // Uppdaterar den sparade konversationen med senaste medelande
 
       } else {
         toast.error('Failed to send message');
@@ -237,6 +248,7 @@ function Chat() {
     }
   };
 
+  // Funktion för att updatera den sparade konversationen
   const updateSavedConversation = (conversationId, latestMessage) => {
     console.info('Updating saved conversation with latest message:', latestMessage);
     setSavedConversations((prevConversations) => {
@@ -251,6 +263,7 @@ function Chat() {
     });
   };
 
+  // Funktion för att radera ett meddelande baserat på dess ID
   const handleDeleteMessage = async (id) => {
     if (!jwtToken) {
       navigate('/login');
@@ -272,12 +285,14 @@ function Chat() {
     }
   };
 
+   // Funktion för att byta till en ny konversation baserat på dess ID
   const handleConversationChange = (newConversationId) => {
     console.info('Switching to new conversation ID:', newConversationId);
     setConversationId(newConversationId);
     saveConversation(newConversationId);
   };
 
+  // Spara konversation i localStorage
   const saveConversation = async (conversationId) => {
     console.info('Saving conversation with ID:', conversationId);
     const conversationExists = savedConversations.some(convo => convo.id === conversationId);
@@ -294,6 +309,7 @@ function Chat() {
     }
   };
 
+  // Funktion för att hantera acceptans av en inbjudan till en konversation
   const handleInviteAcceptance = async (invite) => {
     console.info('Invite accepted for conversation:', invite.conversationId);
 
@@ -334,7 +350,7 @@ function Chat() {
   };
 
 
-
+  // Hämta meddelanden efter att ha gått med i en konversation
   const fetchMessagesAfterJoining = async (conversationId) => {
     console.info('Fetching messages after joining conversation ID:', conversationId);
     try {
@@ -354,16 +370,18 @@ function Chat() {
       toast.error('Failed to fetch messages.');
     }
   };
-
+  
+  // Hantera utloggning
   const handleLogout = () => {
     console.info('Logging out user and clearing session data.');
     // Spara conversationer coh invites till localStorage innan logout
-    localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
-    localStorage.setItem('invites', JSON.stringify(invites));
-    localStorage.setItem('user', JSON.stringify(user));
+    // localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+    // localStorage.setItem('invites', JSON.stringify(invites));
+    // localStorage.setItem('user', JSON.stringify(user));
   
     // Radera token från localStorage
-    localStorage.removeItem('token');
+    // localStorage.removeItem('token');
+    logout();
   
     setMessages([]);
     setSavedConversations([]);
@@ -371,7 +389,7 @@ function Chat() {
     setConversationId('');
     navigate('/login');
   };
-
+  // Formatera datum och tid
   const formatDateTime = (timestamp) => {
     const dateTime = new Date(timestamp);
     if (isNaN(dateTime.getTime())) {
@@ -386,7 +404,7 @@ function Chat() {
     };
     return `${dateTime.toLocaleDateString('en-US', options)} `;
   };
-
+  // Skapa en ny konversation
   const createNewConversation = async () => {
     const newConversationId = uuidv4();
     console.info('Creating new conversation with ID:', newConversationId);
@@ -409,6 +427,7 @@ function Chat() {
     console.info('Conversation ID updated to:', conversationId);
   }, [conversationId]);
 
+  // rendera chat
   return (
     <Container fluid className="chat-container">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
@@ -508,6 +527,7 @@ function Chat() {
   );
 }
 
+// Funktion som representerar varje MessageBubbel i chatten
 function MessageBubble({ message, isCurrentUser, showDateDivider, onDelete, formatDateTime, users, nodeRef }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const messageUser = users[message.userId] || (message.user && message.user[0]);
@@ -554,7 +574,7 @@ function MessageBubble({ message, isCurrentUser, showDateDivider, onDelete, form
   );
 }
 
-
+// Funktion som visar date divider när medelande har skapats, varje timme ett nyt datumavskiljare
 function shouldDisplayDateDivider(currentMessage, previousMessage) {
   if (!previousMessage) {
     return true;
@@ -564,5 +584,5 @@ function shouldDisplayDateDivider(currentMessage, previousMessage) {
   return currentDateTime.toDateString() !== previousDateTime.toDateString();
 }
 
-// Wrap the Chat component with Sentry's withErrorBoundary and withProfiler
-export default Sentry.withProfiler(Sentry.withErrorBoundary(Chat, { fallback: "An error has occurred" })); // Sentry error boundary and profiler
+// Exporterar Chat-komponenten, Sentry's withErrorBoundary felrapportering
+export default Sentry.withProfiler(Sentry.withErrorBoundary(Chat, { fallback: "An error has occurred" }));

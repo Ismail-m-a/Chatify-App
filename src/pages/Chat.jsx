@@ -269,6 +269,7 @@ function Chat() {
       navigate('/login');
       return;
     }
+    toast.info(' You deleted a message  with ID: ' + id);
     console.info('Deleting message with ID:', id);
     try {
       const response = await fetch(`https://chatify-api.up.railway.app/messages/${id}`, {

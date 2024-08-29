@@ -3,10 +3,14 @@ import { ListGroup, Button, Container, Row, Col } from 'react-bootstrap';
 import * as Sentry from '@sentry/react'; // Importera Sentry
 
 function PendingInvites({ invites = [], onConversationStart }) {
-  // Invites skall vara en array
+ // Invites skall vara en array
   if (!Array.isArray(invites)) {
     try {
-      invites = JSON.parse(invites);
+      invites = JSON.parse(invites).reduce((inv, current) => {
+        const exists = inv.find(item => item.username === current.username);
+        if (!exists) inv.push(current);
+        return inv;
+      }, []);
       if (!Array.isArray(invites)) {
         invites = [];
       }

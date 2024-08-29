@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faRightFromBracket, faRightToBracket, faUser, faSquareXmark } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faRightFromBracket, faRightToBracket, faUser, faX } from '@fortawesome/free-solid-svg-icons';
 import { faRocketchat } from '@fortawesome/free-brands-svg-icons';
 import '../css/SideNav.css';
 import { useAuth } from '../AuthContext'; 
@@ -59,15 +59,18 @@ function SideNav() {
   return (
     <div className='navbar'>
       <div className={`sidenav ${isOpen ? 'open' : ''}`}>
-        <button className="closebtn" onClick={toggleMenu}>
-          <FontAwesomeIcon icon={faSquareXmark} />
+        <button className="closebtn" onClick={toggleMenu} style={{ display: isOpen ? 'block' : 'none' }}>
+          <FontAwesomeIcon icon={faX} />
         </button>
-        {user && (
-          <div className="user-section">
-            <img className="side-icon" src={user.avatar} alt={user.username} />
-            <p className="username">{user.username}</p>
-          </div>
-        )}
+        <div className="user-section" 
+          style={{ marginTop: user ? '0' : '20px' }}>
+          {user && (
+            <>
+              <img className="side-icon" src={user.avatar} alt={user.username} />
+              <p className="username">{user.username}</p>
+            </>
+          )}
+        </div>
         <div className="nav-buttons">
           <button onClick={() => handleProtectedRoute('/profile')}>
             <FontAwesomeIcon icon={faUser} /> Profile
@@ -91,8 +94,9 @@ function SideNav() {
         onClick={toggleMenu}
         role="button"
         className="btn btn-ghost"
+        style={{ display: isOpen ? 'none' : 'flex' }}
       >
-        <FontAwesomeIcon icon={faBars} className="h-5 w-5" />
+        <FontAwesomeIcon icon={isOpen ? faX : faBars} className="h-5 w-5" />
       </div>
     </div>
   );

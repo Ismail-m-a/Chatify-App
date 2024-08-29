@@ -29,7 +29,7 @@
   width: 50px;
   height: 50px;
   font-size: 30px;
-  background: #e74c3c; 
+  /* background: #e74c3c;  */
   border: none;
   color: white;
   cursor: pointer;
@@ -41,9 +41,9 @@
   margin-top: 10px; 
 }
 
-.sidenav .closebtn:hover {
+/* .sidenav .closebtn:hover {
   background-color: #c0392b; 
-}
+} */
 
 .sidenav .user-section {
   display: flex;
@@ -51,6 +51,7 @@
   align-items: center;
   padding: 20px 0;
   margin-bottom: 10px; 
+  margin-top: 60px !important;
   
 }
 
@@ -89,7 +90,13 @@
   cursor: pointer;
 }
 
-.sidenav button:hover {
+/* .sidenav button:hover {
+  color: #ecf0f1;
+  background-color: #34495e; 
+  padding-left: 30px; 
+} */
+
+.sidenav button::not(.closebtn)hover {
   color: #ecf0f1;
   background-color: #34495e; 
   padding-left: 30px; 

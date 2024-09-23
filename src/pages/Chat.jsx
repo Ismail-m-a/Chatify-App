@@ -314,41 +314,59 @@ function Chat() {
   const handleInviteAcceptance = async (invite) => {
     console.info('Invite accepted for conversation:', invite.conversationId);
 
-    // Spara conversationer både inviter and invitee
+    // Save the conversation in localStorage and update the state
     await saveConversation(invite.conversationId);
 
-    // Växla till conversationen kopplade till accepterad invite
+    // Switch to the conversation linked to the accepted invite
     setConversationId(invite.conversationId);
 
-    // Fetcha the senaste messages i conversation
+    // Fetch the latest messages for the new conversation
     await fetchMessagesAfterJoining(invite.conversationId);
 
-    // Updatera invites state och ta bort accepterad invite
+    // Update invites state and remove the accepted invite
     setInvites((prevInvites) => {
-        const validInvites = Array.isArray(prevInvites) ? prevInvites : [];
-        return validInvites.filter(i => i.conversationId !== invite.conversationId);
+        // Ensure prevInvites is always treated as an array
+        let invitesArray = [];
+        if (Array.isArray(prevInvites)) {
+            invitesArray = prevInvites;
+        } else if (typeof prevInvites === 'string') {
+            try {
+                invitesArray = JSON.parse(prevInvites);
+                if (!Array.isArray(invitesArray)) {
+                    invitesArray = [];
+                }
+            } catch (error) {
+                console.error('Failed to parse prevInvites:', error);
+                invitesArray = [];
+            }
+        } else {
+            console.error('prevInvites is not an array or string:', prevInvites);
+        }
+
+        return invitesArray.filter(i => i.conversationId !== invite.conversationId);
     });
 
-    // Updatera user object i localStorage spara ändring
+    // Update the user object in localStorage to remove the accepted invite
     const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser) {
         const userObject = Array.isArray(storedUser) ? storedUser[0] : storedUser;
 
-        
-        if (!Array.isArray(userObject.invite)) {
-            userObject.invite = [];
-        }
+        // Filter out the accepted invite
+        const updatedInvites = Array.isArray(userObject.invite) ? 
+            userObject.invite.filter(i => i.conversationId !== invite.conversationId) : [];
 
-        const updatedInvites = userObject.invite.filter(i => i.conversationId !== invite.conversationId);
         userObject.invite = updatedInvites;
         localStorage.setItem('user', JSON.stringify([userObject]));
 
         console.info('Updated user invites in localStorage:', userObject.invite);
     }
 
-    // Spara updaterad invites till localStorage, spara state
-    localStorage.setItem('invites', JSON.stringify(invites));
-  };
+    // Ensure that invites in localStorage is updated as well
+    const updatedInvites = Array.isArray(invites) ? 
+        invites.filter(i => i.conversationId !== invite.conversationId) : [];
+    localStorage.setItem('invites', JSON.stringify(updatedInvites));
+};
+
 
 
   // Hämta meddelanden efter att ha gått med i en konversation

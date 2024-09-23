@@ -10,7 +10,7 @@ function SideNav() {
   const [user, setUser] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, updating } = useAuth();
 
   // check authentication status och user information
   const checkAuthStatus = () => {
@@ -36,8 +36,9 @@ function SideNav() {
 
   
   useEffect(() => {
+    updating
     checkAuthStatus(); 
-  }, [isAuthenticated]);
+  }, [isAuthenticated, updating]);
 
   const handleLogout = () => {
     logout();

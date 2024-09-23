@@ -26,7 +26,8 @@ function Profile() {
   const [showDropdown, setShowDropdown] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, updating } = useAuth();
+  
 
   const loadUserData = () => {
     console.info('Laddar användardata...'); // Informationslogg
@@ -154,6 +155,8 @@ function Profile() {
             ...user,
             ...updatedData,
           };
+
+          updating ();
   
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
